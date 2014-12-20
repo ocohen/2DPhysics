@@ -6,7 +6,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_definitions(-W -Wall -ansi)
 
-set( LIB_SOURCE src/vector2.cpp)
+set( LIB_SOURCE src/vector2.cpp src/transform.cpp)
 set( LIB_HEADERS gmath.h vector2.h transform.h)
 
 add_library(${PROJECT_NAME} ${LIB_SOURCE} ${LIB_HEADERS})

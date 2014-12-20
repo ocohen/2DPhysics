@@ -25,5 +25,14 @@ struct Transform
         const float SinR = sin(Rotation);
         return Vector2(CosR * V.X - SinR * V.Y, SinR * V.X + CosR * V.Y);
 	}
+
+    Transform operator*(const Transform B) const
+    {
+        const float NewRotation = Rotation + B.Rotation;
+        const Vector2 NewPosition = TransformPosition(B.Position);
+        return Transform(NewPosition, NewRotation);
+    }
+
+    static Transform Identity;
 };
 #endif

@@ -40,20 +40,34 @@ TEST_CASE( "Vector math", "[vector2]" )
 
 TEST_CASE("transform math", "[transform]" )
 {
-    const Transform A( Vector2(2,3), 3.14159f);
-    const Vector2 NewPosition = A.TransformPosition( Vector2(0,0) );
-    CHECK(NewPosition == Vector2(2,3));
+    {
+        const Transform A( Vector2(2,3), 3.14159f);
+        const Vector2 NewPosition = A.TransformPosition( Vector2(0,0) );
+        CHECK(NewPosition == Vector2(2,3));
 
-    const Vector2 NewPosition2 = A.TransformVector( Vector2(1,0) );
-    CHECK( NewPosition2.X == Approx(-1) );
-    CHECK( NewPosition2.Y == Approx(0) );
+        const Vector2 NewPosition2 = A.TransformVector( Vector2(1,0) );
+        CHECK( NewPosition2.X == Approx(-1) );
+        CHECK( NewPosition2.Y == Approx(0) );
 
-    const Vector2 CombinedPosition = A.TransformPosition( Vector2(1,0) );
-    CHECK( CombinedPosition.X == Approx(1) );
-    CHECK( CombinedPosition.Y == Approx(3) );
+        const Vector2 CombinedPosition = A.TransformPosition( Vector2(1,0) );
+        CHECK( CombinedPosition.X == Approx(1) );
+        CHECK( CombinedPosition.Y == Approx(3) );
 
-    const Transform B(Vector2::Zero, -PI / 4.f);
-    const Vector2 AnotherRotation = B.TransformVector(Vector2(1,1));
-    CHECK( AnotherRotation.X == Approx(Vector2(1,1).Length()));
-    CHECK( AnotherRotation.Y == Approx(0.f));
+        const Transform B(Vector2::Zero, -PI / 4.f);
+        const Vector2 AnotherRotation = B.TransformVector(Vector2(1,1));
+        CHECK( AnotherRotation.X == Approx(Vector2(1,1).Length()));
+        CHECK( AnotherRotation.Y == Approx(0.f));
+    }
+
+    {
+        const Transform C(Vector2(1.f,2.f), PI *.5f);
+        const Transform D(Vector2(-4.f,-2.f), PI * .25f);
+        const Vector2 InitialPosition(1,2);
+        const Vector2 FinalPosition = (D * C).TransformPosition(InitialPosition);
+
+        const Vector2 AfterCPosition = C.TransformPosition(InitialPosition);
+        const Vector2 AfterDPosition = D.TransformPosition(AfterCPosition);
+
+        CHECK(FinalPosition.IsNear(AfterDPosition));
+    }
 }
