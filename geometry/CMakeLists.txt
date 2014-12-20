@@ -8,8 +8,8 @@ include_directories(${CMAKE_SOURCE_DIR}/math)
 
 add_definitions(-W -Wall -ansi)
 
-set( LIB_SOURCE src/circle.cpp src/rectangle.cpp)
-set( LIB_HEADERS baseshape.h circle.h)
+set( LIB_SOURCE src/circle.cpp src/rectangle.cpp src/baseshape.cpp)
+set( LIB_HEADERS baseshape.h circle.h rectangle.h)
 
 add_library(${PROJECT_NAME} ${LIB_SOURCE} ${LIB_HEADERS})
 

@@ -1,6 +1,6 @@
 #include "circle.h"
 
-Circle::Circle()
+Circle::Circle() : BaseShape(Shape::Circle)
 {
 }
 
@@ -14,9 +14,4 @@ void Circle::SetRadius(const float InRadius)
     Radius = InRadius;
 }
 
-bool Circle::OverlapTest(const Circle& OtherCircle) const
-{
-    const float Distance2 = (OtherCircle.Position - Position).Length2();
-    const float Radii = (Radius + OtherCircle.Radius);
-    return Distance2 <= Radii * Radii;
-}
+Shape::Type Circle::ShapeType = Shape::Circle;

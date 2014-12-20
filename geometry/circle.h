@@ -10,10 +10,11 @@ public:
     Circle();
     void SetPosition(const Vector2& InPosition);
     void SetRadius(const float InRadius);
-    bool OverlapTest(const Circle& OtherCircle) const;
+    using BaseShape::OverlapTest;
 
 public:
     Vector2 Position;
     float Radius;
+    static Shape::Type ShapeType;
 };
 #endif
