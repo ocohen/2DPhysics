@@ -31,6 +31,11 @@ struct Vector2
 	{
 		return Dot(*this,*this);
 	}
+
+    Vector2 GetPerp() const
+    {
+        return Vector2(-Y, X);
+    }
 	
 	float Length() const
 	{

@@ -37,6 +37,11 @@ TEST_CASE( "Vector math", "[vector2]" )
     const Vector2 Normal = Vector2(1,2).GetNormal();
     const Vector2 Difference = Normal - Vector2(0.4472135955f, 0.894427191f);
     CHECK(Difference.IsZero()); 
+
+    const Vector2 X(2,3);
+    const Vector2 XPerp = X.GetPerp();
+    CHECK(XPerp.X == Approx(-3.f));
+    CHECK(XPerp.Y == Approx(2.f));
 }
 
 TEST_CASE("transform math", "[transform]" )
