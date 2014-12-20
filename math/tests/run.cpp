@@ -1,6 +1,7 @@
 #include "gmath.h"
 #include "vector2.h"
 #include "transform.h"
+#include "aabb.h"
 
 #define CATCH_CONFIG_MAIN
 #include "catch.h"
@@ -69,5 +70,47 @@ TEST_CASE("transform math", "[transform]" )
         const Vector2 AfterDPosition = D.TransformPosition(AfterCPosition);
 
         CHECK(FinalPosition.IsNear(AfterDPosition));
+    }
+
+    {
+        const Transform A(Vector2(2,3), PI);
+        const Transform AInverse = A.GetInverse();
+
+        CHECK(AInverse.Position.X == -2);
+        CHECK(AInverse.Position.Y == -3);
+        CHECK(AInverse.Rotation == -PI);
+    }
+}
+
+TEST_CASE("AABB", "[aabb]" )
+{
+    {
+        const AABB Aabb(Vector2::Zero, Vector2(3,4));
+        CHECK(Aabb.Min.X == Approx(0.f) );
+        CHECK(Aabb.Min.Y == Approx(0.f) );
+        CHECK(Aabb.Max.X == Approx(3.f) );
+        CHECK(Aabb.Max.Y == Approx(4.f) );
+    }
+
+
+    {
+        AABB Aabb;
+        CHECK(Aabb.Min == Vector2::Zero);
+        CHECK(Aabb.Max == Vector2::Zero);
+
+        Aabb += Vector2(1,2);
+        CHECK(Aabb.Min == Vector2::Zero);
+        CHECK(Aabb.Max.X == Approx(1.f));
+        CHECK(Aabb.Max.Y == Approx(2.f));
+
+        Aabb += Vector2(-1,3);
+        CHECK(Aabb.Min.X == Approx(-1.f));
+        CHECK(Aabb.Min.Y == Approx(0.f));
+        CHECK(Aabb.Max.X == Approx(1.f));
+        CHECK(Aabb.Max.Y == Approx(3.f));
+
+        const Vector2 Center = Aabb.GetCenter();
+        CHECK(Center.X == Approx(0.f));
+        CHECK(Center.Y == Approx(1.5f));
     }
 }

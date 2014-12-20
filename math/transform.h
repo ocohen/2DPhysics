@@ -33,6 +33,11 @@ struct Transform
         return Transform(NewPosition, NewRotation);
     }
 
+    Transform GetInverse() const
+    {
+        return Transform(-Position, -Rotation);
+    }
+
     static Transform Identity;
 };
 #endif
