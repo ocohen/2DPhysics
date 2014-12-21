@@ -1,12 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
-PROJECT(geometry)
+PROJECT(simulation)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_definitions(-W -Wall -ansi)
-
-set( LIB_SOURCE src/circle.cpp src/rectangle.cpp src/baseshape.cpp)
-set( LIB_HEADERS baseshape.h circle.h rectangle.h)
+set( LIB_SOURCE src/actor.cpp src/world.cpp)
+set( LIB_HEADERS actor.h world.h)
 
 add_library(${PROJECT_NAME} ${LIB_SOURCE} ${LIB_HEADERS})
 
