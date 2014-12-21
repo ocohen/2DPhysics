@@ -2,7 +2,8 @@
 #include "baseshape.h"
 
 Actor::Actor(World* InWorld)
-: MyWorld(InWorld)
+: Pose(Transform::Identity)
+, MyWorld(InWorld)
 , bIsKinematic(false)
 {
 }

@@ -1,6 +1,9 @@
 #ifndef OC_BASESHAPE_H
 #define OC_BASESHAPE_H
 
+#include "vector2.h"
+#include <vector>
+
 namespace Shape
 {
     enum Type
@@ -17,6 +20,7 @@ struct BaseShape
 {
 public:
     virtual ~BaseShape(){}
+    virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, unsigned NumVertices) const = 0;
     bool OverlapTest(const BaseShape&) const;
     Shape::Type GetType() const { return ShapeType; }
 

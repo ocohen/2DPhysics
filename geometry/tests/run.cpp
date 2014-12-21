@@ -4,6 +4,41 @@
 #include "circle.h"
 #include "rectangle.h"
 
+TEST_CASE( "Rendering Shapes", "[renderingshapes]")
+{
+    {
+        const Vector2 Center(2,3);
+        const Circle ACircle(Center, 1.5f);
+        const BaseShape* Shape = &ACircle;
+
+        std::vector<Vector2> RenderVertices;
+        Shape->GenerateRenderVertices(RenderVertices, 16);
+
+        REQUIRE(RenderVertices.size() == 16);
+        for(size_t Count=0; Count < RenderVertices.size(); ++Count)
+        {
+            const float Distance = (RenderVertices[Count] - Center).Length();
+            CHECK(Distance == Approx(1.5f));
+        }
+    }
+
+    {
+        const Vector2 Center(2,3);
+        const Rectangle ARectangle(Transform(Center, PI*.5f), Vector2(1,2));
+        const BaseShape* Shape = &ARectangle;
+
+        std::vector<Vector2> RenderVertices;
+        Shape->GenerateRenderVertices(RenderVertices, 16);
+
+        REQUIRE(RenderVertices.size() == 4);    //rectangle ignores passed in number of vertices
+        //CCW orientation
+        CHECK((RenderVertices[0] - RenderVertices[1]).Length() == Approx(2.f));
+        CHECK((RenderVertices[1] - RenderVertices[2]).Length() == Approx(4.f));
+        CHECK((RenderVertices[2] - RenderVertices[3]).Length() == Approx(2.f));
+        CHECK((RenderVertices[3] - RenderVertices[0]).Length() == Approx(4.f));
+    }
+}
+
 TEST_CASE( "Circle Shape", "[circle]" )
 {
     Circle Circle1, Circle2;

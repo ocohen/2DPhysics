@@ -11,7 +11,7 @@ public:
     Circle(const Vector2& InPosition, const float InRadius);
     void SetPosition(const Vector2& InPosition);
     void SetRadius(const float InRadius);
-    using BaseShape::OverlapTest;
+    virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, unsigned NumVertices) const override;
 
 public:
     Vector2 Position;

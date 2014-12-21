@@ -15,6 +15,7 @@ public:
     bool IsKinematic() const { return bIsKinematic; }
     World* GetWorld() const { return MyWorld; }
     void SetPose(const Transform& InTransform);
+    const Transform& GetPose() const { return Pose; }
     template <typename T> T* CreateShape();
     const std::vector<BaseShape*>& GetShapes() const { return Shapes; }
 
