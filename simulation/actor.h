@@ -2,6 +2,7 @@
 #define OC_ACTOR_H
 
 #include "transform.h"
+#include "actorshape.h"
 #include <vector>
 
 struct BaseShape;
@@ -14,22 +15,24 @@ public:
     void SetKinematic(bool IsKinematic);
     bool IsKinematic() const { return bIsKinematic; }
     World* GetWorld() const { return MyWorld; }
-    void SetPose(const Transform& InTransform);
-    const Transform& GetPose() const { return Pose; }
-    template <typename T> T* CreateShape();
-    const std::vector<BaseShape*>& GetShapes() const { return Shapes; }
+    void SetWorldTransform(const Transform& InTransform);
+    const Transform& GetWorldTransform() const { return WorldTM; }
+    template <typename T> T* CreateShape(const Transform& LocalTM = Transform::Identity);
+    const std::vector<ActorShape*>& GetActorShapes() const { return ActorShapes; }
+    bool OverlapTest(const Actor* Other) const;
 
 private:
-    Transform Pose;
+    Transform WorldTM;
     World* MyWorld;
     bool bIsKinematic;
-    std::vector<BaseShape*> Shapes;
+    std::vector<ActorShape*> ActorShapes;
 };
 
-template <typename T> T* Actor::CreateShape()
+template <typename T> T* Actor::CreateShape(const Transform& LocalTM)
 {
     T* NewShape = new T();
-    Shapes.push_back(NewShape);
+    ActorShape* AnActorShape = new ActorShape(NewShape, LocalTM);
+    ActorShapes.push_back(AnActorShape);
     return NewShape;
 }
 

@@ -8,16 +8,10 @@ BaseShape::BaseShape(const Shape::Type InType)
 {
 }
 
-bool OverlapTest(const BaseShape& A, const BaseShape& B);
 
-bool BaseShape::OverlapTest(const BaseShape& B) const
+bool CircleCircleOverlapTest(const Circle& A, const Transform& ATM, const Circle& B, const Transform& BTM)
 {
-    return ::OverlapTest(*this, B);
-}
-
-bool CircleCircleOverlapTest(const Circle& A, const Circle& B)
-{
-    const float Distance2 = (A.Position - B.Position).Length2();
+    const float Distance2 = (ATM.Position - BTM.Position).Length2();
     const float Radii = (A.Radius + B.Radius);
     return Distance2 <= Radii * Radii;
 }
@@ -56,24 +50,25 @@ void MinMaxForNormal(const Vector2& Normal, const Vector2 Pts[8], float& Min1, f
     }
 }
 
-bool RectangleRectangleOverlapTest(const Rectangle& A, const Rectangle& B)
+bool RectangleRectangleOverlapTest(const Rectangle& A, const Transform& ATM, const Rectangle& B, const Transform& BTM)
 {
     //use SAT
     Vector2 Normals[4];
-    Normals[0] = A.TM.TransformVector(Vector2(1,0));
+    Normals[0] = ATM.TransformVector(Vector2(1,0));
     Normals[1] = Normals[0].GetPerp();
-    Normals[2] = B.TM.TransformVector(Vector2(1,0));
+    Normals[2] = BTM.TransformVector(Vector2(1,0));
     Normals[3] = Normals[2].GetPerp();
 
+
     Vector2 Pts[8];
-    Pts[0] = A.TM.TransformPosition(Vector2(-A.Extents.X, -A.Extents.Y));
-    Pts[1] = A.TM.TransformPosition(Vector2(A.Extents.X, -A.Extents.Y));
-    Pts[2] = A.TM.TransformPosition(Vector2(A.Extents.X, A.Extents.Y));
-    Pts[3] = A.TM.TransformPosition(Vector2(-A.Extents.X, A.Extents.Y));
-    Pts[4] = B.TM.TransformPosition(Vector2(-B.Extents.X, -B.Extents.Y));
-    Pts[5] = B.TM.TransformPosition(Vector2(B.Extents.X, -B.Extents.Y));
-    Pts[6] = B.TM.TransformPosition(Vector2(B.Extents.X, B.Extents.Y));
-    Pts[7] = B.TM.TransformPosition(Vector2(-B.Extents.X, B.Extents.Y));
+    Pts[0] = ATM.TransformPosition(Vector2(-A.Extents.X, -A.Extents.Y));
+    Pts[1] = ATM.TransformPosition(Vector2(A.Extents.X, -A.Extents.Y));
+    Pts[2] = ATM.TransformPosition(Vector2(A.Extents.X, A.Extents.Y));
+    Pts[3] = ATM.TransformPosition(Vector2(-A.Extents.X, A.Extents.Y));
+    Pts[4] = BTM.TransformPosition(Vector2(-B.Extents.X, -B.Extents.Y));
+    Pts[5] = BTM.TransformPosition(Vector2(B.Extents.X, -B.Extents.Y));
+    Pts[6] = BTM.TransformPosition(Vector2(B.Extents.X, B.Extents.Y));
+    Pts[7] = BTM.TransformPosition(Vector2(-B.Extents.X, B.Extents.Y));
 
     for(const Vector2& N : Normals)
     {
@@ -101,39 +96,39 @@ float AABBPointDistance2(const Vector2& Min, const Vector2& Max, const Vector2& 
     return Distance2;
 }
 
-bool RectangleCircleOverlapTest(const Rectangle& Rect, const Circle& Circ)
+bool RectangleCircleOverlapTest(const Rectangle& Rect, const Transform& RectTM, const Circle& Circ, const Transform& CircTM)
 {
     //we convert the circle into the rectangle's local space. This allows for a cheap AABB distance check
-    const Transform RectInv = Rect.TM.GetInverse();
-    const Vector2 LocalOffset = Circ.Position - Rect.TM.Position;
+    const Transform RectInv = RectTM.GetInverse();
+    const Vector2 LocalOffset = CircTM.Position - RectTM.Position;
     const Vector2 CircLocalP = RectInv.TransformVector(LocalOffset);
     const float Distance2 = AABBPointDistance2(-Rect.Extents, Rect.Extents, CircLocalP);
     return Distance2 <= Circ.Radius*Circ.Radius;
 }
 
-bool OverlapTest(const BaseShape&A, const BaseShape& B)
+bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseShape& B, const Transform& BTM)
 {
     const Shape::Type AType = A.GetType();
     const Shape::Type BType = B.GetType();
 
     if(AType == BType && AType == Shape::Circle)
     {
-        return CircleCircleOverlapTest(*A.Get<Circle>(), *B.Get<Circle>());
+        return CircleCircleOverlapTest(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM);
     }
 
     if(AType == BType && AType == Shape::Rectangle)
     {
-        return RectangleRectangleOverlapTest(*A.Get<Rectangle>(), *B.Get<Rectangle>());
+        return RectangleRectangleOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM);
     }
 
     if(AType == Shape::Circle && BType == Shape::Rectangle)
     {
-        return RectangleCircleOverlapTest(*B.Get<Rectangle>(), *A.Get<Circle>());
+        return RectangleCircleOverlapTest(*B.Get<Rectangle>(), BTM, *A.Get<Circle>(), ATM);
     }
 
     if(BType == Shape::Circle && AType == Shape::Rectangle)
     {
-        return RectangleCircleOverlapTest(*A.Get<Rectangle>(), *B.Get<Circle>());
+        return RectangleCircleOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Circle>(), BTM);
     }
     
     assert(false && "Unsupported overlap test between two shapes");

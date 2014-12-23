@@ -4,16 +4,10 @@ Circle::Circle() : BaseShape(Shape::Circle)
 {
 }
 
-Circle::Circle(const Vector2& InPosition, const float InRadius)
+Circle::Circle(const float InRadius)
 : BaseShape(Shape::Circle)
-,Position(InPosition)
 , Radius(InRadius)
 {
-}
-
-void Circle::SetPosition(const Vector2& InPosition)
-{
-    Position = InPosition;
 }
 
 void Circle::SetRadius(const float InRadius)
@@ -21,8 +15,10 @@ void Circle::SetRadius(const float InRadius)
     Radius = InRadius;
 }
 
-void Circle::GenerateRenderVertices(std::vector<Vector2>& OutVertices, unsigned NumVertices) const
+void Circle::GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const
 {
+    const int NumVertices = 32;
+    const Vector2& Position = WorldTM.Position;
     const float DeltaRad = PI*2.f / NumVertices;
     for(unsigned Count = 0; Count < NumVertices; ++Count)
     {

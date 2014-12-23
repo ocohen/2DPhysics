@@ -8,7 +8,7 @@ class Renderer : public TinyRenderer::Renderer
 {
 public:
     Renderer(float Width, float Height);
-    void DrawActor(const Actor* AnActor);
+    void DrawActor(const Actor* AnActor, const float* Color = 0);
 };
 
 #endif

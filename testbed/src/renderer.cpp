@@ -12,26 +12,22 @@ Renderer::Renderer(float Width, float Height)
     SetCameraLookAt(Position, Target, Up);
 }
 
-void Renderer::DrawActor(const Actor* AnActor)
+void Renderer::DrawActor(const Actor* AnActor, const float* Color /*=0*/)
 {
-    const Transform& TM = AnActor->GetPose();
-    const std::vector<BaseShape*>& Shapes = AnActor->GetShapes();
-    for(BaseShape* Shape : Shapes)
+    const Transform& WorldTM = AnActor->GetWorldTransform();
+    const std::vector<ActorShape*>& ActorShapes = AnActor->GetActorShapes();
+    for(ActorShape* Shape : ActorShapes)
     {
 
         std::vector<Vector2> Vertices;
-        Shape->GenerateRenderVertices(Vertices, 32);
-        for(Vector2& V : Vertices)
-        {
-            V = TM.TransformPosition(V);
-        }
+        Shape->Shape->GenerateRenderVertices(Vertices, WorldTM * Shape->LocalTM);
 
         for(size_t Count = 0; Count < Vertices.size() -1; ++Count)
         {
-            DrawLine(&Vertices[Count].X, &Vertices[Count+1].X);
+            DrawLine(&Vertices[Count].X, &Vertices[Count+1].X, Color);
         }
 
-        DrawLine(&Vertices[Vertices.size()-1].X, &Vertices[0].X);
+        DrawLine(&Vertices[Vertices.size()-1].X, &Vertices[0].X, Color);
     }
 
 }

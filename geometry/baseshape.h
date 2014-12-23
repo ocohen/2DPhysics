@@ -1,7 +1,7 @@
 #ifndef OC_BASESHAPE_H
 #define OC_BASESHAPE_H
 
-#include "vector2.h"
+#include "transform.h"
 #include <vector>
 
 namespace Shape
@@ -15,13 +15,15 @@ namespace Shape
 
 struct Circle;
 struct Rectangle;
+class Actor;
 
 struct BaseShape
 {
 public:
+    BaseShape(const Shape::Type InType);
     virtual ~BaseShape(){}
-    virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, unsigned NumVertices) const = 0;
-    bool OverlapTest(const BaseShape&) const;
+    virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const = 0;
+    static bool OverlapTest(const BaseShape& A, const Transform& AWorldTM, const BaseShape& B, const Transform& BWorldTM);
     Shape::Type GetType() const { return ShapeType; }
 
     template <typename T>
@@ -29,8 +31,7 @@ public:
 
     template <typename T>
     const T* Get() const;
-protected:
-    BaseShape(const Shape::Type InType);
+
 private:
     Shape::Type ShapeType; 
 };

@@ -8,13 +8,11 @@ struct Circle : public BaseShape
 {
 public:
     Circle();
-    Circle(const Vector2& InPosition, const float InRadius);
-    void SetPosition(const Vector2& InPosition);
+    Circle(const float InRadius);
     void SetRadius(const float InRadius);
-    virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, unsigned NumVertices) const override;
+    virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const override;
 
 public:
-    Vector2 Position;
     float Radius;
     static Shape::Type ShapeType;
 };
