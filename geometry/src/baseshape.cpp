@@ -118,26 +118,51 @@ bool RectangleRectangleOverlapTest(const Rectangle& A, const Transform& ATM, con
     return true;
 }
 
-float AABBPointDistance2(const Vector2& Min, const Vector2& Max, const Vector2& P)
+Vector2 AABBClosestPointOnBorder(const Vector2& Min, const Vector2& Max, const Vector2& P)
 {
-    /** Real time collision detection pg 131*/
-    float Distance2 = 0.f;
-    if(P.X < Min.X) Distance2 += (P.X - Min.X) * (P.X - Min.X);
-    if(P.Y < Min.Y) Distance2 += (P.Y - Min.Y) * (P.Y - Min.Y);
-    if(P.X > Max.X) Distance2 += (P.X - Max.X) * (P.X - Max.X);
-    if(P.Y > Max.Y) Distance2 += (P.Y - Max.Y) * (P.Y - Max.Y);
+    const float X = Clamp(P.X, Min.X, Max.X);
+    const float Y = Clamp(P.Y, Min.Y, Max.Y);
 
-    return Distance2;
+    if(InRange(P.X, Min.X, Max.X) && InRange(P.Y, Min.Y, Max.Y))
+    {
+        //we never want internal points
+        const float MinX = std::min(P.X - Min.X, Max.X - P.X);
+        const float MinY = std::min(P.Y - Min.Y, Max.Y - P.Y);
+        const bool bMinX = (P.X - Min.X) < (Max.X - P.X);
+        const bool bMinY = (P.Y - Min.Y) < (Max.Y - P.Y);
+        const bool bClampX = MinX > MinY;
+
+        return Vector2( bClampX ? X : (bMinX ? Min.X : Max.X), bClampX ? (bMinY ? Min.Y : Max.Y) : Y);
+    }
+
+    return Vector2(X,Y);
 }
 
-bool RectangleCircleOverlapTest(const Rectangle& Rect, const Transform& RectTM, const Circle& Circ, const Transform& CircTM)
+bool RectangleCircleOverlapTest(const Rectangle& Rect, const Transform& RectTM, const Circle& Circ, const Transform& CircTM, ShapeOverlap* OverlapResult)
 {
     //we convert the circle into the rectangle's local space. This allows for a cheap AABB distance check
     const Transform RectInv = RectTM.GetInverse();
     const Vector2 LocalOffset = CircTM.Position - RectTM.Position;
     const Vector2 CircLocalP = RectInv.TransformVector(LocalOffset);
-    const float Distance2 = AABBPointDistance2(-Rect.Extents, Rect.Extents, CircLocalP);
-    return Distance2 <= Circ.Radius*Circ.Radius;
+    const Vector2 ClosestPoint = AABBClosestPointOnBorder(-Rect.Extents, Rect.Extents, CircLocalP);
+    const Vector2 ClosestPointToCirc= CircLocalP - ClosestPoint;
+    const float Distance2 = ClosestPointToCirc.Length2();
+    const bool bOverlap = Distance2 <= Circ.Radius*Circ.Radius;
+
+    if(bOverlap && OverlapResult)
+    {
+        OverlapResult->A = &Rect;
+        OverlapResult->B = &Circ;
+
+        Vector2 MTD = RectTM.TransformVector(ClosestPointToCirc);
+        MTD.SafeNormalize();
+        const bool bFlipMTD = Vector2::Dot(MTD, CircTM.Position - RectTM.Position) < 0.f;
+        
+        OverlapResult->MTD = bFlipMTD ? -MTD : MTD;
+        OverlapResult->PenetrationDepth = bFlipMTD ? Circ.Radius + sqrtf(Distance2) : Circ.Radius - sqrtf(Distance2);
+    }
+
+    return bOverlap;
 }
 
 bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseShape& B, const Transform& BTM, ShapeOverlap* Overlap)
@@ -157,12 +182,12 @@ bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseS
 
     if(AType == Shape::Circle && BType == Shape::Rectangle)
     {
-        return RectangleCircleOverlapTest(*B.Get<Rectangle>(), BTM, *A.Get<Circle>(), ATM);
+        return RectangleCircleOverlapTest(*B.Get<Rectangle>(), BTM, *A.Get<Circle>(), ATM, Overlap);
     }
 
     if(BType == Shape::Circle && AType == Shape::Rectangle)
     {
-        return RectangleCircleOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Circle>(), BTM);
+        return RectangleCircleOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Circle>(), BTM, Overlap);
     }
     
     assert(false && "Unsupported overlap test between two shapes");

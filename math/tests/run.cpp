@@ -13,7 +13,7 @@ TEST_CASE( "General math", "[gmath]" )
     CHECK( Abs(2) == 2);
     CHECK( IsZero(0) );
     CHECK( !IsZero(0.001) );
-    CHECK( IsZero(0.0001) );
+    CHECK( IsZero(SMALL_NUMBER) );
     CHECK( IsNear(1, 1.00001) );
     CHECK( !IsNear(1, 1.01) );
 }

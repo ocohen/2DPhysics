@@ -175,4 +175,50 @@ TEST_CASE("Minimum Displacement Vector", "[mdv]")
         CHECK(Overlap.PenetrationDepth == Approx(1.9f));
     }
 
+    {
+        Rectangle Rect(Vector2(1.f, 1.f));
+        Circle Circ(1.f);
+
+        REQUIRE(BaseShape::OverlapTest(Rect, Transform::Identity, Circ, Transform(Vector2(0.f, 2.f)), &Overlap));
+        CHECK(Overlap.A == &Rect);
+        CHECK(Overlap.B == &Circ);
+        CHECK(Overlap.MTD.X == Approx(0.f));
+        CHECK(Overlap.MTD.Y == Approx(1.f));
+        CHECK(Overlap.PenetrationDepth == Approx(0.f));
+
+        REQUIRE(BaseShape::OverlapTest(Circ, Transform(Vector2(0, 2.f)), Rect, Transform::Identity, &Overlap));
+        CHECK(Overlap.A == &Rect);
+        CHECK(Overlap.B == &Circ);
+        CHECK(Overlap.MTD.X == Approx(0.f));
+        CHECK(Overlap.MTD.Y == Approx(1.f));
+        CHECK(Overlap.PenetrationDepth == Approx(0.f));
+
+        REQUIRE(BaseShape::OverlapTest(Rect, Transform::Identity, Circ, Transform(Vector2(0.f, 1.5f)), &Overlap));
+        CHECK(Overlap.A == &Rect);
+        CHECK(Overlap.B == &Circ);
+        CHECK(Overlap.MTD.X == Approx(0.f));
+        CHECK(Overlap.MTD.Y == Approx(1.f));
+        CHECK(Overlap.PenetrationDepth == Approx(.5f));
+        
+        REQUIRE(BaseShape::OverlapTest(Rect, Transform::Identity, Circ, Transform(Vector2(1.5f, 1.5f)), &Overlap));
+        CHECK(Overlap.A == &Rect);
+        CHECK(Overlap.B == &Circ);
+        CHECK(Overlap.MTD.X == Approx(sqrt(2)/2.f));
+        CHECK(Overlap.MTD.Y == Approx(sqrt(2)/2.f));
+        CHECK(Overlap.PenetrationDepth == Approx(1.f - sqrt(2)/2.f));
+
+        REQUIRE(BaseShape::OverlapTest(Rect, Transform::Identity, Circ, Transform(Vector2(0.9f, 0.f)), &Overlap));
+        CHECK(Overlap.A == &Rect);
+        CHECK(Overlap.B == &Circ);
+        CHECK(Overlap.MTD.X == Approx(1.f));
+        CHECK(Overlap.MTD.Y == Approx(0.f));
+        CHECK(Overlap.PenetrationDepth == Approx(1.1f));
+
+        REQUIRE(BaseShape::OverlapTest(Rect, Transform::Identity, Circ, Transform(Vector2(0.f, 0.1f)), &Overlap));
+        CHECK(Overlap.A == &Rect);
+        CHECK(Overlap.B == &Circ);
+        CHECK(Overlap.MTD.X == Approx(0.f));
+        CHECK(Overlap.MTD.Y == Approx(1.f));
+        CHECK(Overlap.PenetrationDepth == Approx(1.9f));
+    }
 }
