@@ -6,7 +6,7 @@
 #include "rectangle.h"
 #include "renderer.h"
 
-class ShapeOverlap : public Test
+class ShapeOverlapTest : public Test
 {
 public:
     bool Init(int, const char**)
@@ -78,4 +78,4 @@ public:
 private:
     World AWorld;
 };
-TEST(ShapeOverlap, "shapeoverlap");
+TEST(ShapeOverlapTest, "shapeoverlap");

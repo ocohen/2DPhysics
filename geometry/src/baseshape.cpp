@@ -1,6 +1,7 @@
 #include "baseshape.h"
 #include "circle.h"
 #include "rectangle.h"
+#include "shapeoverlap.h"
 #include <cassert>
 
 BaseShape::BaseShape(const Shape::Type InType)
@@ -9,11 +10,23 @@ BaseShape::BaseShape(const Shape::Type InType)
 }
 
 
-bool CircleCircleOverlapTest(const Circle& A, const Transform& ATM, const Circle& B, const Transform& BTM)
+bool CircleCircleOverlapTest(const Circle& A, const Transform& ATM, const Circle& B, const Transform& BTM, ShapeOverlap* Overlap)
 {
-    const float Distance2 = (ATM.Position - BTM.Position).Length2();
+    const Vector2 AToB = BTM.Position - ATM.Position;
+    const float Distance2 = AToB.Length2();
     const float Radii = (A.Radius + B.Radius);
-    return Distance2 <= Radii * Radii;
+    const bool bOverlapping = Distance2 <= Radii * Radii;
+
+    if(bOverlapping && Overlap)
+    {
+        Overlap->A = &A;
+        Overlap->B = &B;
+        Overlap->MTD = AToB.GetSafeNormal();
+        Overlap->PenetrationDepth = std::max(Radii - sqrtf(Distance2), 0.f);
+    }
+
+    return bOverlapping;
+
 }
 
 void ProjectionSwap(const float Projection, float& Max, float &Min)
@@ -106,14 +119,14 @@ bool RectangleCircleOverlapTest(const Rectangle& Rect, const Transform& RectTM, 
     return Distance2 <= Circ.Radius*Circ.Radius;
 }
 
-bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseShape& B, const Transform& BTM)
+bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseShape& B, const Transform& BTM, ShapeOverlap* Overlap)
 {
     const Shape::Type AType = A.GetType();
     const Shape::Type BType = B.GetType();
 
     if(AType == BType && AType == Shape::Circle)
     {
-        return CircleCircleOverlapTest(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM);
+        return CircleCircleOverlapTest(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM, Overlap);
     }
 
     if(AType == BType && AType == Shape::Rectangle)

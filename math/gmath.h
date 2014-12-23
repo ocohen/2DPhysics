@@ -2,6 +2,7 @@
 #define OC_MATH_H
 
 #include <cmath>
+#include <algorithm>
 
 #define SMALL_NUMBER 1e-4;
 const float PI = 3.141592653589793238;

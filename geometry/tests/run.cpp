@@ -3,6 +3,7 @@
 
 #include "circle.h"
 #include "rectangle.h"
+#include "shapeoverlap.h"
 
 TEST_CASE( "Rendering Shapes", "[renderingshapes]")
 {
@@ -103,5 +104,46 @@ TEST_CASE("Base Shape", "[baseshape]")
         CHECK(BaseShape::OverlapTest(Rectangle1, TM2, Circle2, Transform::Identity) == true);
         CHECK(BaseShape::OverlapTest(Rectangle1, Transform(Vector2(3,2), PI*0.5f), Circle2, Transform::Identity) == false);
         CHECK(BaseShape::OverlapTest(Rectangle1, Transform(Vector2(3,2), PI), Circle2, Transform::Identity) == true);
+    }
+}
+
+TEST_CASE("Minimum Displacement Vector", "[mdv]")
+{
+    Circle Circle1(1.f);
+    Circle Circle2(2.f);
+    ShapeOverlap Overlap;
+    {
+        REQUIRE(BaseShape::OverlapTest(Circle1, Transform::Identity, Circle2, Transform(Vector2(3.f, 0.f)), &Overlap));
+        CHECK(Overlap.A == &Circle1);
+        CHECK(Overlap.B == &Circle2);
+        CHECK(Overlap.MTD.X == Approx(1.f));
+        CHECK(Overlap.MTD.Y == Approx(0.f));
+        CHECK(Overlap.PenetrationDepth == Approx(0.f));
+    }
+
+    {
+        REQUIRE(BaseShape::OverlapTest(Circle1, Transform::Identity, Circle2, Transform(Vector2(3*sqrt(2.f)/2.f, 3*sqrt(2.f)/2.f)), &Overlap));
+        CHECK(Overlap.A == &Circle1);
+        CHECK(Overlap.B == &Circle2);
+        CHECK(Overlap.MTD.X == Approx(sqrt(2.f) / 2.f));
+        CHECK(Overlap.MTD.Y == Approx(sqrt(2.f) / 2.f));
+        CHECK(Overlap.PenetrationDepth == Approx(0.f));
+    }
+
+    {
+        REQUIRE(BaseShape::OverlapTest(Circle1, Transform::Identity, Circle2, Transform(Vector2(1.f, 0.f)), &Overlap));
+        CHECK(Overlap.A == &Circle1);
+        CHECK(Overlap.B == &Circle2);
+        CHECK(Overlap.PenetrationDepth == Approx(2.f));
+
+        REQUIRE(BaseShape::OverlapTest(Circle1, Transform::Identity, Circle2, Transform(Vector2(1.5f, 0.f)), &Overlap));
+        CHECK(Overlap.A == &Circle1);
+        CHECK(Overlap.B == &Circle2);
+        CHECK(Overlap.PenetrationDepth == Approx(1.5f));
+
+        REQUIRE(BaseShape::OverlapTest(Circle1, Transform::Identity, Circle2, Transform(Vector2(0.5f, 0.f)), &Overlap));
+        CHECK(Overlap.A == &Circle1);
+        CHECK(Overlap.B == &Circle2);
+        CHECK(Overlap.PenetrationDepth == Approx(2.5f));
     }
 }
