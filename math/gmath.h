@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <limits>
 
 #define SMALL_NUMBER 1e-4;
 const float PI = 3.141592653589793238;

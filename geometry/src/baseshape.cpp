@@ -63,7 +63,7 @@ void MinMaxForNormal(const Vector2& Normal, const Vector2 Pts[8], float& Min1, f
     }
 }
 
-bool RectangleRectangleOverlapTest(const Rectangle& A, const Transform& ATM, const Rectangle& B, const Transform& BTM)
+bool RectangleRectangleOverlapTest(const Rectangle& A, const Transform& ATM, const Rectangle& B, const Transform& BTM, ShapeOverlap* OverlapResult)
 {
     //use SAT
     Vector2 Normals[4];
@@ -83,8 +83,11 @@ bool RectangleRectangleOverlapTest(const Rectangle& A, const Transform& ATM, con
     Pts[6] = BTM.TransformPosition(Vector2(B.Extents.X, B.Extents.Y));
     Pts[7] = BTM.TransformPosition(Vector2(-B.Extents.X, B.Extents.Y));
 
-    for(const Vector2& N : Normals)
+    float MinOverlap = std::numeric_limits<float>::max();
+    int MinIdx = -1;
+    for(int NormalIdx = 0; NormalIdx < 4; ++NormalIdx)
     {
+        const Vector2& N = Normals[NormalIdx].GetPerp(); 
         float Min1,Max1,Min2,Max2;
         MinMaxForNormal(N, Pts, Min1, Max1, Min2, Max2);
 
@@ -92,6 +95,24 @@ bool RectangleRectangleOverlapTest(const Rectangle& A, const Transform& ATM, con
         {
             return false;
         }
+
+        const float Overlap = std::min((Max2 - Min1), (Max1 - Min2));
+        if(Overlap < MinOverlap)
+        {
+            MinOverlap = Overlap;
+            MinIdx = NormalIdx;
+        }
+    }
+
+    if(OverlapResult)
+    {
+        OverlapResult->A = &A;
+        OverlapResult->B = &B;
+
+        const Vector2& MTD = Normals[MinIdx].GetPerp();
+
+        OverlapResult->MTD = Vector2::Dot(MTD, BTM.Position - ATM.Position) > 0.f ? MTD : -MTD;
+        OverlapResult->PenetrationDepth = MinOverlap;
     }
 
     return true;
@@ -131,7 +152,7 @@ bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseS
 
     if(AType == BType && AType == Shape::Rectangle)
     {
-        return RectangleRectangleOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM);
+        return RectangleRectangleOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM, Overlap);
     }
 
     if(AType == Shape::Circle && BType == Shape::Rectangle)
