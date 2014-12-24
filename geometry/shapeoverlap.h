@@ -1,6 +1,8 @@
 #ifndef OC_SHAPEOVERLAP_H
 #define OC_SHAPEOVERLAP_H
 
+#include "vector2.h"
+
 struct BaseShape;
 struct ShapeOverlap
 {

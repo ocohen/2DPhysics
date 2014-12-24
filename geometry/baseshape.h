@@ -33,6 +33,9 @@ public:
     template <typename T>
     const T* Get() const;
 
+public:
+    Transform LocalTM;
+
 private:
     Shape::Type ShapeType; 
 };

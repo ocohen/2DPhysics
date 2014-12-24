@@ -15,12 +15,12 @@ Renderer::Renderer(float Width, float Height)
 void Renderer::DrawActor(const Actor* AnActor, const float* Color /*=0*/)
 {
     const Transform& WorldTM = AnActor->GetWorldTransform();
-    const std::vector<ActorShape*>& ActorShapes = AnActor->GetActorShapes();
-    for(ActorShape* Shape : ActorShapes)
+    const std::vector<BaseShape*>& BaseShapes = AnActor->GetShapes();
+    for(BaseShape* Shape : BaseShapes)
     {
 
         std::vector<Vector2> Vertices;
-        Shape->Shape->GenerateRenderVertices(Vertices, WorldTM * Shape->LocalTM);
+        Shape->GenerateRenderVertices(Vertices, WorldTM * Shape->LocalTM);
 
         for(size_t Count = 0; Count < Vertices.size() -1; ++Count)
         {

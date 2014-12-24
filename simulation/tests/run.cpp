@@ -23,7 +23,7 @@ TEST_CASE( "Actor", "[actor]" )
     Rectangle* ARectangle = AnActor->CreateShape<Rectangle>();
     CHECK(ARectangle);
 
-    const std::vector<ActorShape*>& Shapes = AnActor->GetActorShapes();
+    const std::vector<BaseShape*>& Shapes = AnActor->GetShapes();
     CHECK(Shapes.size() == 2);
     {
         Actor* A = World1.CreateActor();
@@ -34,17 +34,19 @@ TEST_CASE( "Actor", "[actor]" )
         Circle* BCircle = B->CreateShape<Circle>(Transform(Vector2(2.f, 0.f)));
         BCircle->SetRadius(1.f);
 
-        const std::vector<ActorShape*>& ActorShapes = B->GetActorShapes();
-        REQUIRE(ActorShapes[0]->LocalTM.Position.X == Approx(2.f));
+        const std::vector<BaseShape*>& BaseShapes = B->GetShapes();
+        REQUIRE(BaseShapes[0]->LocalTM.Position.X == Approx(2.f));
 
         CHECK(A->OverlapTest(B));
 
         B->SetWorldTransform(Transform(Vector2(0.5f, 0.f), 0.f));
         CHECK(A->OverlapTest(B) == false);
 
+        std::vector<ShapeOverlap> Overlaps;
         Rectangle* BRectangle = B->CreateShape<Rectangle>();
         BRectangle->SetExtents(Vector2(1.5f, 1.f));
-        CHECK(A->OverlapTest(B));
+        REQUIRE(A->OverlapTest(B, &Overlaps));
+        CHECK(Overlaps.size() == 1);
     }
 }
 
@@ -59,4 +61,29 @@ TEST_CASE( "World", "[world]" )
     
     const std::vector<Actor*>& Actors = AWorld.GetAllActors();
     CHECK(Actors.size() == 2);
+}
+
+TEST_CASE( "Manifold", "[manifold]" )
+{
+    World AWorld;
+    Actor* Actor1 = AWorld.CreateActor();
+    Actor* Actor2 = AWorld.CreateActor();
+
+    Circle* Circ1 = Actor1->CreateShape<Circle>();
+    Circ1->SetRadius(1.f);
+
+    Circle* Circ2 = Actor2->CreateShape<Circle>();
+    Circ2->SetRadius(1.f);
+
+    Actor2->SetWorldTransform(Transform(Vector2(1.f, 0.f) ) );
+
+    AWorld.GenerateContactManifolds();
+    const std::vector<ContactManifold>& ContactManifolds = AWorld.GetContactManifolds();
+    REQUIRE(ContactManifolds.size() == 1);
+    const ContactManifold& Manifold = ContactManifolds[0];
+
+    CHECK(Manifold.A == Actor1);
+    CHECK(Manifold.B == Actor2);
+    REQUIRE(Manifold.NumOverlaps == 1);
+    CHECK(Manifold.Overlaps[0].PenetrationDepth == Approx(1.f));
 }

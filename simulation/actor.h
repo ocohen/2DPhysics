@@ -2,7 +2,7 @@
 #define OC_ACTOR_H
 
 #include "transform.h"
-#include "actorshape.h"
+#include "shapeoverlap.h"
 #include <vector>
 
 struct BaseShape;
@@ -18,21 +18,21 @@ public:
     void SetWorldTransform(const Transform& InTransform);
     const Transform& GetWorldTransform() const { return WorldTM; }
     template <typename T> T* CreateShape(const Transform& LocalTM = Transform::Identity);
-    const std::vector<ActorShape*>& GetActorShapes() const { return ActorShapes; }
-    bool OverlapTest(const Actor* Other) const;
+    const std::vector<BaseShape*>& GetShapes() const { return Shapes; }
+    bool OverlapTest(const Actor* Other, std::vector<ShapeOverlap>* Overlaps = 0) const;
 
 private:
     Transform WorldTM;
     World* MyWorld;
     bool bIsKinematic;
-    std::vector<ActorShape*> ActorShapes;
+    std::vector<BaseShape*> Shapes;
 };
 
 template <typename T> T* Actor::CreateShape(const Transform& LocalTM)
 {
     T* NewShape = new T();
-    ActorShape* AnActorShape = new ActorShape(NewShape, LocalTM);
-    ActorShapes.push_back(AnActorShape);
+    NewShape->LocalTM = LocalTM;
+    Shapes.push_back(NewShape);
     return NewShape;
 }
 
