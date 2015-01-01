@@ -9,12 +9,14 @@ namespace Shape
     enum Type
     {
         Circle,
-        Rectangle
+        Rectangle,
+        ConvexPolygon,
     };
 }
 
 struct Circle;
 struct Rectangle;
+struct ConvexPolygon;
 class Actor;
 struct ShapeOverlap;
 struct ContactManifold;

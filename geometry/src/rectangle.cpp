@@ -1,11 +1,11 @@
 #include "rectangle.h"
 
-Rectangle::Rectangle() : BaseShape(Shape::Rectangle)
+Rectangle::Rectangle() : ConvexPolygon(Shape::Rectangle)
 {
 }
 
 Rectangle::Rectangle(const Vector2& InExtents)
-: BaseShape(Shape::Rectangle)
+: ConvexPolygon(Shape::Rectangle)
 ,Extents(InExtents)
 {
 }

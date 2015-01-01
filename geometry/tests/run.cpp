@@ -4,6 +4,7 @@
 #include "circle.h"
 #include "rectangle.h"
 #include "shapeoverlap.h"
+#include "convexpolygon.h"
 
 TEST_CASE( "Rendering Shapes", "[renderingshapes]")
 {
@@ -221,4 +222,27 @@ TEST_CASE("Minimum Displacement Vector", "[mdv]")
         CHECK(Overlap.MTD.Y == Approx(1.f));
         CHECK(Overlap.PenetrationDepth == Approx(1.9f));
     }
+}
+
+TEST_CASE( "Convex Shapes", "[convexshapes]")
+{
+    ConvexPolygon Poly;
+    Poly.AddVertex(Vector2::Zero);
+    Poly.AddVertex(Vector2(1,0));
+    Poly.AddVertex(Vector2(1,1));
+
+    const std::vector<Vector2>& Vertices = Poly.GetVertices();
+    REQUIRE(Vertices.size() == 3);
+
+    std::vector<Vector2> Normals;
+    Poly.ComputeNormals(Normals);
+    REQUIRE(Normals.size() == 3);
+    CHECK(Normals[0].X == Approx(0.f));
+    CHECK(Normals[0].Y == Approx(-1.f));
+    
+    CHECK(Normals[1].X == Approx(1.f));
+    CHECK(Normals[1].Y == Approx(0.f));
+
+    CHECK(Normals[2].X == Approx(-sqrt(2)/2.f));
+    CHECK(Normals[2].Y == Approx(sqrt(2)/2.f));
 }

@@ -3,8 +3,8 @@ PROJECT(geometry)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
-set( LIB_SOURCE src/circle.cpp src/rectangle.cpp src/baseshape.cpp)
-set( LIB_HEADERS baseshape.h circle.h rectangle.h shapeoverlap.h)
+set( LIB_SOURCE src/circle.cpp src/rectangle.cpp src/convexpolygon.cpp src/baseshape.cpp)
+set( LIB_HEADERS baseshape.h circle.h rectangle.h convexpolygon.h shapeoverlap.h)
 
 add_library(${PROJECT_NAME} ${LIB_SOURCE} ${LIB_HEADERS})
 

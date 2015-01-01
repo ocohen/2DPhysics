@@ -203,6 +203,71 @@ void GenerateCircleCircleManifold(const Circle&,const Transform&, const Circle& 
     ConctactPoint.Position = BTM.Position - MTD * B.Radius;
 }
 
+void GenerateRectangleRectangleManifold(const Rectangle& A,const Transform& ATM, const Rectangle& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, ContactManifold& ManifoldOut)
+{
+    //first we find which shape is the reference shape (the one whos face is identical to MTD)
+
+    Vector2 Normals[8];
+    Normals[0] = ATM.TransformVector(Vector2(1,0));
+    Normals[1] = ATM.TransformVector(Vector2(0,1));
+    Normals[2] = ATM.TransformVector(Vector2(-1,0));
+    Normals[3] = ATM.TransformVector(Vector2(0,-1));
+    Normals[4] = BTM.TransformVector(Vector2(1,0));
+    Normals[5] = BTM.TransformVector(Vector2(0,1));
+    Normals[6] = BTM.TransformVector(Vector2(-1,0));
+    Normals[7] = BTM.TransformVector(Vector2(0,-1));
+
+    Vector2 LocalNormals[8];
+    LocalNormals[0] = Vector2(1,0);
+    LocalNormals[1] = Vector2(0,1);
+    LocalNormals[2] = Vector2(-1,0);
+    LocalNormals[3] = Vector2(0,-1);
+    LocalNormals[4] = Vector2(1,0);
+    LocalNormals[5] = Vector2(0,1);
+    LocalNormals[6] = Vector2(-1,0);
+    LocalNormals[7] = Vector2(0,-1);
+
+    int RefIdx = -1;
+    for(int NormalIdx = 0; NormalIdx < 8; ++NormalIdx)
+    {
+        const Vector2& Normal = Normals[NormalIdx];
+        if(Vector2::Dot(Normal, MTD) < SMALL_NUMBER)
+        {
+            RefIdx = NormalIdx;
+            break;
+        }
+    }
+
+    assert:(RefIdx >= 0);
+    const Vector2& RefNormal = Normals[RefIdx];
+    const Vector2& RefNormalLocal = LocalNormals[RefIdx];
+
+    //now find which edge on the other shape is closest
+    int MinIdx = -1;
+    float MinDot = std::numeric_limits<float>::max();
+    const bool bAToB = RefIdx < 4;
+
+    for(int Count = 0; Count < 4; ++Count)
+    {
+        const int NormalIdx = bAToB ? Count : Count + 4;
+        const Vector2& Normal = Normals[NormalIdx];
+        const float Dot = Vector2::Dot(Normal, MTD);
+
+        if(Dot < MinDot)
+        {
+            MinDot = Dot;
+            MinIdx = NormalIdx;
+        }
+    }
+
+    assert(MinIdx >= 0);
+    const Vector2& IncNormal = Normals[MinIdx];
+    const Vector2& IncNormalLocal = LocalNormals[MinIdx];
+
+    //we now have the two normals that are closest. We'll use the extents of the first shape to clip the contact points of the second shape
+
+}
+
 void BaseShape::GenerateManifold(const ShapeOverlap& Overlap, const Transform& ATM, const Transform& BTM, ContactManifold& OutManifold)
 {
     const BaseShape& A = *Overlap.A;
@@ -214,6 +279,12 @@ void BaseShape::GenerateManifold(const ShapeOverlap& Overlap, const Transform& A
     if(AType == BType && AType == Shape::Circle)
     {
         GenerateCircleCircleManifold(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
+        return;
+    }
+
+    if(AType == BType && AType == Shape::Rectangle)
+    {
+        GenerateRectangleRectangleManifold(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
         return;
     }
 

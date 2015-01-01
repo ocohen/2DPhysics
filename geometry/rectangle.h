@@ -3,8 +3,9 @@
 
 #include "baseshape.h"
 #include "transform.h"
+#include "convexpolygon.h"
 
-struct Rectangle : public BaseShape
+struct Rectangle : public ConvexPolygon
 {
 public:
     Rectangle();
