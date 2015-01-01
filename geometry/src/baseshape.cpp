@@ -30,19 +30,6 @@ bool CircleCircleOverlapTest(const Circle& A, const Transform& ATM, const Circle
 
 }
 
-void ProjectionSwap(const float Projection, float& Max, float &Min)
-{
-    if(Projection > Max)
-    {
-        Max = Projection;
-    }
-
-    if(Projection < Min)
-    {
-        Min = Projection;
-    }
-}
-
 void MinMaxForNormal(const Vector2& Normal, const Vector2 Pts[], int NumPts, float& Min, float& Max)
 {
     Max = Vector2::Dot(Pts[0],Normal);
