@@ -63,66 +63,56 @@ TEST_CASE( "World", "[world]" )
     CHECK(Actors.size() == 2);
 }
 
-TEST_CASE( "Manifold", "[manifold]" )
+TEST_CASE( "Circle-Circle Contact Points", "[circleCircleContactPoints]" )
 {
-    World AWorld;
-    Actor* Actor1 = AWorld.CreateActor();
-    Actor* Actor2 = AWorld.CreateActor();
-
-    Circle* Circ1 = Actor1->CreateShape<Circle>();
-    Circ1->SetRadius(1.f);
-
-    Circle* Circ2 = Actor2->CreateShape<Circle>();
-    Circ2->SetRadius(1.f);
-
-    Actor2->SetWorldTransform(Transform(Vector2(1.f, 0.f) ) );
-
+    Circle Circ1(1.f);
+    Circle Circ2(2.f);
+    ShapeOverlap Overlap;
+    Overlap.A = &Circ1;
+    Overlap.B = &Circ2;
     {
-        AWorld.GenerateContactManifolds();
-        const std::vector<ContactManifold>& ContactManifolds = AWorld.GetContactManifolds();
-        REQUIRE(ContactManifolds.size() == 1);
-        const ContactManifold& Manifold = ContactManifolds[0];
+        //Assume two circles are at position 0,0 and 2,0
+        Overlap.MTD = Vector2(1,0);
+        Overlap.PenetrationDepth = 2.f;
 
-        CHECK(Manifold.A == Actor1);
-        CHECK(Manifold.B == Actor2);
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform::Identity, Transform(Vector2(2,0)), Manifold);
         REQUIRE(Manifold.NumContacts == 1);
-        CHECK(Manifold.ContactPoints[0].PenetrationDepth == Approx(1.f));
-        CHECK(Manifold.ContactPoints[0].Normal.X == Approx(1.f));
-        CHECK(Manifold.ContactPoints[0].Normal.Y == Approx(0.f));
-        CHECK(Manifold.ContactPoints[0].Position.X == Approx(0.f));
-        CHECK(Manifold.ContactPoints[0].Position.Y == Approx(0.f));
+        const Contact& AContact = Manifold.ContactPoints[0];
+        CHECK(AContact.Normal.X == Approx(1.f));
+        CHECK(AContact.Normal.Y == Approx(0.f));
+        CHECK(AContact.Position.X == Approx(0.f));
+        CHECK(AContact.Position.Y == Approx(0.f));
     }
 
-    Actor1->SetWorldTransform(Transform(Vector2(2, 0)));
     {
-        AWorld.GenerateContactManifolds();
-        const std::vector<ContactManifold>& ContactManifolds = AWorld.GetContactManifolds();
-        REQUIRE(ContactManifolds.size() == 1);
-        const ContactManifold& Manifold = ContactManifolds[0];
+        //Assume two circles are at position 4,0 and 2,0
+        Overlap.MTD = Vector2(-1,0);
+        Overlap.PenetrationDepth = 2.f;
 
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform(Vector2(4,0)), Transform(Vector2(2,0)), Manifold);
         REQUIRE(Manifold.NumContacts == 1);
-        CHECK(Manifold.ContactPoints[0].PenetrationDepth == Approx(1.f));
-        CHECK(Manifold.ContactPoints[0].Normal.X == Approx(-1.f));
-        CHECK(Manifold.ContactPoints[0].Normal.Y == Approx(0.f));
-        CHECK(Manifold.ContactPoints[0].Position.X == Approx(2.f));
-        CHECK(Manifold.ContactPoints[0].Position.Y == Approx(0.f));
+        const Contact& AContact = Manifold.ContactPoints[0];
+        CHECK(AContact.Normal.X == Approx(-1.f));
+        CHECK(AContact.Normal.Y == Approx(0.f));
+        CHECK(AContact.Position.X == Approx(4.f));
+        CHECK(AContact.Position.Y == Approx(0.f));
     }
 
-    const float sq22 = sqrt(2.f) / 2.f;
-    Actor1->SetWorldTransform(Transform::Identity);
-    Actor2->SetWorldTransform(Transform(Vector2(sq22, sq22)));
     {
-        AWorld.GenerateContactManifolds();
-        const std::vector<ContactManifold>& ContactManifolds = AWorld.GetContactManifolds();
-        REQUIRE(ContactManifolds.size() == 1);
-        const ContactManifold& Manifold = ContactManifolds[0];
+        const float sq22 = sqrt(2.f) / 2.f;
+        //Assume two circles are at position 0,0 and 2,2
+        Overlap.MTD = Vector2(sq22, sq22);
+        Overlap.PenetrationDepth = 2.f - sq22;
 
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform(Vector2(0,0)), Transform(Vector2(2,2)), Manifold);
         REQUIRE(Manifold.NumContacts == 1);
-        CHECK(Manifold.ContactPoints[0].PenetrationDepth == Approx(1.f));
-        CHECK(Manifold.ContactPoints[0].Normal.X == Approx(sq22));
-        CHECK(Manifold.ContactPoints[0].Normal.Y == Approx(sq22));
-        CHECK(Manifold.ContactPoints[0].Position.X == Approx(0.f));
-        CHECK(Manifold.ContactPoints[0].Position.Y == Approx(0.f));
+        const Contact& AContact = Manifold.ContactPoints[0];
+        CHECK(AContact.Normal.X == Approx(sq22));
+        CHECK(AContact.Normal.Y == Approx(sq22));
+        CHECK(AContact.Position.X == Approx(2 - 2.f*sq22));
+        CHECK(AContact.Position.Y == Approx(2 - 2.f*sq22));
     }
-
 }

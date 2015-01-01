@@ -17,6 +17,7 @@ struct Circle;
 struct Rectangle;
 class Actor;
 struct ShapeOverlap;
+struct ContactManifold;
 struct Contact;
 
 struct BaseShape
@@ -26,7 +27,8 @@ public:
     virtual ~BaseShape(){}
     virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const = 0;
     static bool OverlapTest(const BaseShape& A, const Transform& AWorldTM, const BaseShape& B, const Transform& BWorldTM, ShapeOverlap* OverlapResult=0);
-    static void GenerateContactInfo(const BaseShape& A, const Transform& AWorldTM, const BaseShape& B, const Transform& BWorldTM, const Vector2& MTD, const float PenetrationDepth, Contact& OutContactInfo);
+    static void GenerateManifold(const ShapeOverlap& Overlap, const Transform& AWorldTM, const Transform& BWorldTM, ContactManifold& OutManifold);
+
     Shape::Type GetType() const { return ShapeType; }
 
     template <typename T>

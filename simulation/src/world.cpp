@@ -94,10 +94,9 @@ void World::GenerateContactManifolds()
                        for(int OverlapIdx = 0; OverlapIdx < AManifold.NumContacts; ++OverlapIdx)
                        {
                            const ShapeOverlap& Overlap = Overlaps[OverlapIdx];
-                           Contact& Pair = AManifold.ContactPoints[OverlapIdx];
                            const Transform ATM = A->GetWorldTransform() * Overlap.A->LocalTM;
                            const Transform BTM = B->GetWorldTransform() * Overlap.B->LocalTM;
-                           BaseShape::GenerateContactInfo(*Overlap.A, ATM, *Overlap.B, BTM, Overlap.MTD, Overlap.PenetrationDepth, Pair);
+                           BaseShape::GenerateManifold(Overlap, ATM, BTM, AManifold);
                        }
 
                        ContactManifolds.push_back(AManifold);

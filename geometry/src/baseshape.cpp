@@ -194,23 +194,29 @@ bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseS
     assert(false && "Unsupported overlap test between two shapes");
 }
 
-void CircleCircleContactInfo(const Circle&,const Transform&, const Circle& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, Contact& ContactOut)
+void GenerateCircleCircleManifold(const Circle&,const Transform&, const Circle& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, ContactManifold& ManifoldOut)
 {
-    ContactOut.Normal = MTD;
-    ContactOut.PenetrationDepth = PenetrationDepth;
-    ContactOut.Position = BTM.Position - MTD * B.Radius;
+    ManifoldOut.NumContacts = 1;
+    Contact& ConctactPoint = ManifoldOut.ContactPoints[0];
+    ConctactPoint.Normal = MTD;
+    ConctactPoint.PenetrationDepth = PenetrationDepth;
+    ConctactPoint.Position = BTM.Position - MTD * B.Radius;
 }
 
-void BaseShape::GenerateContactInfo(const BaseShape& A, const Transform& ATM, const BaseShape&B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, Contact& ContactOut)
+void BaseShape::GenerateManifold(const ShapeOverlap& Overlap, const Transform& ATM, const Transform& BTM, ContactManifold& OutManifold)
 {
+    const BaseShape& A = *Overlap.A;
+    const BaseShape& B = *Overlap.B;
+
     const Shape::Type AType = A.GetType();
     const Shape::Type BType = B.GetType();
 
     if(AType == BType && AType == Shape::Circle)
     {
-        CircleCircleContactInfo(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM, MTD, PenetrationDepth, ContactOut);
+        GenerateCircleCircleManifold(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
         return;
     }
 
     assert(false && "Unsupported overlap test between two shapes");
+
 }
