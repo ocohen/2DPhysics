@@ -16,6 +16,7 @@ public:
 
     //Add vertices in a CCW winding
     void AddVertex(const Vector2& Vertex);
+    void ClearVertices() { Vertices.clear(); }
 
 public:
     static Shape::Type ShapeType;

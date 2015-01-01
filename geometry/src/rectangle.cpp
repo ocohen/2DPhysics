@@ -2,17 +2,29 @@
 
 Rectangle::Rectangle() : ConvexPolygon(Shape::Rectangle)
 {
+    UpdateVertices();
 }
 
 Rectangle::Rectangle(const Vector2& InExtents)
 : ConvexPolygon(Shape::Rectangle)
 ,Extents(InExtents)
 {
+    UpdateVertices();
 }
 
 void Rectangle::SetExtents(const Vector2& InExtents)
 {
     Extents = InExtents;
+    UpdateVertices();
+}
+
+void Rectangle::UpdateVertices()
+{
+    ClearVertices();
+    AddVertex(Vector2(Extents.X, -Extents.Y));
+    AddVertex(Extents);
+    AddVertex(Vector2(-Extents.X, Extents.Y));
+    AddVertex(-Extents);
 }
 
 void Rectangle::GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& TM) const

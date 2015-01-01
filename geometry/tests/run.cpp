@@ -226,23 +226,48 @@ TEST_CASE("Minimum Displacement Vector", "[mdv]")
 
 TEST_CASE( "Convex Shapes", "[convexshapes]")
 {
-    ConvexPolygon Poly;
-    Poly.AddVertex(Vector2::Zero);
-    Poly.AddVertex(Vector2(1,0));
-    Poly.AddVertex(Vector2(1,1));
+    //generic poly (triangle)
+    {
+        ConvexPolygon Poly;
+        Poly.AddVertex(Vector2::Zero);
+        Poly.AddVertex(Vector2(1,0));
+        Poly.AddVertex(Vector2(1,1));
 
-    const std::vector<Vector2>& Vertices = Poly.GetVertices();
-    REQUIRE(Vertices.size() == 3);
+        const std::vector<Vector2>& Vertices = Poly.GetVertices();
+        REQUIRE(Vertices.size() == 3);
 
-    std::vector<Vector2> Normals;
-    Poly.ComputeNormals(Normals);
-    REQUIRE(Normals.size() == 3);
-    CHECK(Normals[0].X == Approx(0.f));
-    CHECK(Normals[0].Y == Approx(-1.f));
-    
-    CHECK(Normals[1].X == Approx(1.f));
-    CHECK(Normals[1].Y == Approx(0.f));
+        std::vector<Vector2> Normals;
+        Poly.ComputeNormals(Normals);
+        REQUIRE(Normals.size() == 3);
+        CHECK(Normals[0].X == Approx(0.f));
+        CHECK(Normals[0].Y == Approx(-1.f));
+        
+        CHECK(Normals[1].X == Approx(1.f));
+        CHECK(Normals[1].Y == Approx(0.f));
 
-    CHECK(Normals[2].X == Approx(-sqrt(2)/2.f));
-    CHECK(Normals[2].Y == Approx(sqrt(2)/2.f));
+        CHECK(Normals[2].X == Approx(-sqrt(2)/2.f));
+        CHECK(Normals[2].Y == Approx(sqrt(2)/2.f));
+    }
+
+    //rectangle child class
+    {
+        Rectangle Rect(Vector2(2.f, 1.f));
+        const std::vector<Vector2>& Vertices = Rect.GetVertices();
+        REQUIRE(Vertices.size() == 4);
+
+        std::vector<Vector2> Normals;
+        Rect.ComputeNormals(Normals);
+        REQUIRE(Normals.size() == 4);
+        CHECK(Normals[0].X == Approx(1.f));
+        CHECK(Normals[0].Y == Approx(0.f));
+
+        CHECK(Normals[1].X == Approx(0.f));
+        CHECK(Normals[1].Y == Approx(1.f));
+
+        CHECK(Normals[2].X == Approx(-1.f));
+        CHECK(Normals[2].Y == Approx(0.f));
+
+        CHECK(Normals[3].X == Approx(0.f));
+        CHECK(Normals[3].Y == Approx(-1.f));
+    }
 }

@@ -16,5 +16,8 @@ public:
 public:
     Vector2 Extents;
     static Shape::Type ShapeType;
+
+private:
+    void UpdateVertices();
 };
 #endif
