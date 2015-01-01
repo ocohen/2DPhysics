@@ -2,6 +2,7 @@
 #include "circle.h"
 #include "rectangle.h"
 #include "shapeoverlap.h"
+#include "contactmanifold.h"
 #include <cassert>
 
 BaseShape::BaseShape(const Shape::Type InType)
@@ -190,5 +191,26 @@ bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseS
         return RectangleCircleOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Circle>(), BTM, Overlap);
     }
     
+    assert(false && "Unsupported overlap test between two shapes");
+}
+
+void CircleCircleContactInfo(const Circle&,const Transform&, const Circle& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, Contact& ContactOut)
+{
+    ContactOut.Normal = MTD;
+    ContactOut.PenetrationDepth = PenetrationDepth;
+    ContactOut.Position = BTM.Position - MTD * B.Radius;
+}
+
+void BaseShape::GenerateContactInfo(const BaseShape& A, const Transform& ATM, const BaseShape&B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, Contact& ContactOut)
+{
+    const Shape::Type AType = A.GetType();
+    const Shape::Type BType = B.GetType();
+
+    if(AType == BType && AType == Shape::Circle)
+    {
+        CircleCircleContactInfo(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM, MTD, PenetrationDepth, ContactOut);
+        return;
+    }
+
     assert(false && "Unsupported overlap test between two shapes");
 }

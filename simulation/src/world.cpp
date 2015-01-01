@@ -1,5 +1,6 @@
 #include "world.h"
 #include "actor.h"
+#include "baseshape.h"
 #include <cassert>
 #include <set>
 
@@ -71,6 +72,7 @@ struct ManifoldKey
 
 void World::GenerateContactManifolds()
 {
+    ContactManifolds.clear();
     std::set<ManifoldKey> ManifoldDB;
     for(Actor* A : Actors)
     {
@@ -88,10 +90,14 @@ void World::GenerateContactManifolds()
                        ContactManifold AManifold;
                        AManifold.A = A;
                        AManifold.B = B;
-                       AManifold.NumOverlaps = std::min(Overlaps.size(), sizeof(AManifold.Overlaps) / sizeof(ShapeOverlap));
-                       for(int OverlapIdx = 0; OverlapIdx < AManifold.NumOverlaps; ++OverlapIdx)
+                       AManifold.NumContacts = std::min(Overlaps.size(), sizeof(AManifold.ContactPoints) / sizeof(ShapeOverlap));
+                       for(int OverlapIdx = 0; OverlapIdx < AManifold.NumContacts; ++OverlapIdx)
                        {
-                           AManifold.Overlaps[OverlapIdx] = Overlaps[OverlapIdx];
+                           const ShapeOverlap& Overlap = Overlaps[OverlapIdx];
+                           Contact& Pair = AManifold.ContactPoints[OverlapIdx];
+                           const Transform ATM = A->GetWorldTransform() * Overlap.A->LocalTM;
+                           const Transform BTM = B->GetWorldTransform() * Overlap.B->LocalTM;
+                           BaseShape::GenerateContactInfo(*Overlap.A, ATM, *Overlap.B, BTM, Overlap.MTD, Overlap.PenetrationDepth, Pair);
                        }
 
                        ContactManifolds.push_back(AManifold);

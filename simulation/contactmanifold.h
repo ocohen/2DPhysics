@@ -4,15 +4,22 @@
 #include "shapeoverlap.h"
 
 class Actor;
+struct Contact
+{
+    Vector2 Position;
+    Vector2 Normal;
+    float PenetrationDepth;
+};
+
 struct ContactManifold
 {
     Actor* A;
     Actor* B;
-    ShapeOverlap Overlaps[4];
-    int NumOverlaps;
+    Contact ContactPoints[4];
+    int NumContacts;
 
     ContactManifold()
-        : A(0), B(0), NumOverlaps(0) {}
+        : A(0), B(0), NumContacts(0) {}
 };
 
 #endif

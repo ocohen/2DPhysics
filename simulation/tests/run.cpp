@@ -77,13 +77,52 @@ TEST_CASE( "Manifold", "[manifold]" )
 
     Actor2->SetWorldTransform(Transform(Vector2(1.f, 0.f) ) );
 
-    AWorld.GenerateContactManifolds();
-    const std::vector<ContactManifold>& ContactManifolds = AWorld.GetContactManifolds();
-    REQUIRE(ContactManifolds.size() == 1);
-    const ContactManifold& Manifold = ContactManifolds[0];
+    {
+        AWorld.GenerateContactManifolds();
+        const std::vector<ContactManifold>& ContactManifolds = AWorld.GetContactManifolds();
+        REQUIRE(ContactManifolds.size() == 1);
+        const ContactManifold& Manifold = ContactManifolds[0];
 
-    CHECK(Manifold.A == Actor1);
-    CHECK(Manifold.B == Actor2);
-    REQUIRE(Manifold.NumOverlaps == 1);
-    CHECK(Manifold.Overlaps[0].PenetrationDepth == Approx(1.f));
+        CHECK(Manifold.A == Actor1);
+        CHECK(Manifold.B == Actor2);
+        REQUIRE(Manifold.NumContacts == 1);
+        CHECK(Manifold.ContactPoints[0].PenetrationDepth == Approx(1.f));
+        CHECK(Manifold.ContactPoints[0].Normal.X == Approx(1.f));
+        CHECK(Manifold.ContactPoints[0].Normal.Y == Approx(0.f));
+        CHECK(Manifold.ContactPoints[0].Position.X == Approx(0.f));
+        CHECK(Manifold.ContactPoints[0].Position.Y == Approx(0.f));
+    }
+
+    Actor1->SetWorldTransform(Transform(Vector2(2, 0)));
+    {
+        AWorld.GenerateContactManifolds();
+        const std::vector<ContactManifold>& ContactManifolds = AWorld.GetContactManifolds();
+        REQUIRE(ContactManifolds.size() == 1);
+        const ContactManifold& Manifold = ContactManifolds[0];
+
+        REQUIRE(Manifold.NumContacts == 1);
+        CHECK(Manifold.ContactPoints[0].PenetrationDepth == Approx(1.f));
+        CHECK(Manifold.ContactPoints[0].Normal.X == Approx(-1.f));
+        CHECK(Manifold.ContactPoints[0].Normal.Y == Approx(0.f));
+        CHECK(Manifold.ContactPoints[0].Position.X == Approx(2.f));
+        CHECK(Manifold.ContactPoints[0].Position.Y == Approx(0.f));
+    }
+
+    const float sq22 = sqrt(2.f) / 2.f;
+    Actor1->SetWorldTransform(Transform::Identity);
+    Actor2->SetWorldTransform(Transform(Vector2(sq22, sq22)));
+    {
+        AWorld.GenerateContactManifolds();
+        const std::vector<ContactManifold>& ContactManifolds = AWorld.GetContactManifolds();
+        REQUIRE(ContactManifolds.size() == 1);
+        const ContactManifold& Manifold = ContactManifolds[0];
+
+        REQUIRE(Manifold.NumContacts == 1);
+        CHECK(Manifold.ContactPoints[0].PenetrationDepth == Approx(1.f));
+        CHECK(Manifold.ContactPoints[0].Normal.X == Approx(sq22));
+        CHECK(Manifold.ContactPoints[0].Normal.Y == Approx(sq22));
+        CHECK(Manifold.ContactPoints[0].Position.X == Approx(0.f));
+        CHECK(Manifold.ContactPoints[0].Position.Y == Approx(0.f));
+    }
+
 }
