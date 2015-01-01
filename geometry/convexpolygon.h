@@ -12,7 +12,10 @@ public:
     ConvexPolygon(Shape::Type ShapeType);  //child classes should always use this constructor to make sure their type is used
     virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const override;
     const std::vector<Vector2>& GetVertices() const { return Vertices; }
-    void ComputeNormals(std::vector<Vector2>& OutNormals) const;
+    int GetNumVertices() const { return Vertices.size(); }
+    void ComputeNormals(std::vector<Vector2>& OutNormals, const Transform& WorldTM = Transform::Identity) const;
+    void ComputeWorldPositions(std::vector<Vector2>& OutPositions, const Transform& WorldTM = Transform::Identity) const;
+    void ComputeWorldPositionsAndNormals(std::vector<Vector2>& OutPositions, std::vector<Vector2>& OutNormals, const Transform& WorldTM) const;
 
     //Add vertices in a CCW winding
     void AddVertex(const Vector2& Vertex);

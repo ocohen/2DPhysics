@@ -43,54 +43,39 @@ void ProjectionSwap(const float Projection, float& Max, float &Min)
     }
 }
 
-void MinMaxForNormal(const Vector2& Normal, const Vector2 Pts[8], float& Min1, float& Max1, float& Min2, float& Max2)
+void MinMaxForNormal(const Vector2& Normal, const Vector2 Pts[], int NumPts, float& Min, float& Max)
 {
-    Max1 = Vector2::Dot(Pts[0],Normal);
-    Min1 = Max1;
-    Max2 = Vector2::Dot(Pts[4],Normal);
-    Min2 = Max2;
+    Max = Vector2::Dot(Pts[0],Normal);
+    Min = Max;
 
-    for(int Count= 1; Count< 4; ++Count)
+    for(int PtIdx= 1; PtIdx< NumPts; ++PtIdx)
     {
-        const int PtIdx1 = Count;
-        const float Projection1 = Vector2::Dot(Pts[PtIdx1],Normal);
-        Max1 = Projection1 > Max1 ? Projection1 : Max1;
-        Min1 = Projection1 < Min1 ? Projection1 : Min1;
-
-        const int PtIdx2 = Count+4;
-        const float Projection2 = Vector2::Dot(Pts[PtIdx2],Normal);
-        Max2 = Projection2 > Max2 ? Projection2 : Max2;
-        Min2 = Projection2 < Min2 ? Projection2 : Min2;
+        const float Projection = Vector2::Dot(Pts[PtIdx],Normal);
+        Max = std::max(Max, Projection);
+        Min = std::min(Min, Projection);
     }
 }
 
-bool RectangleRectangleOverlapTest(const Rectangle& A, const Transform& ATM, const Rectangle& B, const Transform& BTM, ShapeOverlap* OverlapResult)
+bool ConvexConvexOverlapTest(const ConvexPolygon& A, const Transform& ATM, const ConvexPolygon& B, const Transform& BTM, ShapeOverlap* OverlapResult)
 {
     //use SAT
-    Vector2 Normals[4];
-    Normals[0] = ATM.TransformVector(Vector2(1,0));
-    Normals[1] = Normals[0].GetPerp();
-    Normals[2] = BTM.TransformVector(Vector2(1,0));
-    Normals[3] = Normals[2].GetPerp();
+    std::vector<Vector2> Positions;
+    std::vector<Vector2> Normals;
+    A.ComputeWorldPositionsAndNormals(Positions, Normals, ATM);
+    B.ComputeWorldPositionsAndNormals(Positions, Normals, BTM);
 
-
-    Vector2 Pts[8];
-    Pts[0] = ATM.TransformPosition(Vector2(-A.Extents.X, -A.Extents.Y));
-    Pts[1] = ATM.TransformPosition(Vector2(A.Extents.X, -A.Extents.Y));
-    Pts[2] = ATM.TransformPosition(Vector2(A.Extents.X, A.Extents.Y));
-    Pts[3] = ATM.TransformPosition(Vector2(-A.Extents.X, A.Extents.Y));
-    Pts[4] = BTM.TransformPosition(Vector2(-B.Extents.X, -B.Extents.Y));
-    Pts[5] = BTM.TransformPosition(Vector2(B.Extents.X, -B.Extents.Y));
-    Pts[6] = BTM.TransformPosition(Vector2(B.Extents.X, B.Extents.Y));
-    Pts[7] = BTM.TransformPosition(Vector2(-B.Extents.X, B.Extents.Y));
+    const int NumAVertices = A.GetNumVertices();
+    const int NumBVertices = B.GetNumVertices();
+    const int NumVertices = NumAVertices + NumBVertices;
 
     float MinOverlap = std::numeric_limits<float>::max();
     int MinIdx = -1;
-    for(int NormalIdx = 0; NormalIdx < 4; ++NormalIdx)
+    for(int NormalIdx = 0; NormalIdx < NumVertices; ++NormalIdx)
     {
-        const Vector2& N = Normals[NormalIdx].GetPerp(); 
+        const Vector2& N = Normals[NormalIdx]; 
         float Min1,Max1,Min2,Max2;
-        MinMaxForNormal(N, Pts, Min1, Max1, Min2, Max2);
+        MinMaxForNormal(N, &Positions[0], NumAVertices, Min1, Max1);
+        MinMaxForNormal(N, &Positions[NumAVertices], NumBVertices, Min2, Max2);
 
         if(Min2 > Max1 || Min1 > Max2)
         {
@@ -110,7 +95,7 @@ bool RectangleRectangleOverlapTest(const Rectangle& A, const Transform& ATM, con
         OverlapResult->A = &A;
         OverlapResult->B = &B;
 
-        const Vector2& MTD = Normals[MinIdx].GetPerp();
+        const Vector2& MTD = Normals[MinIdx];
 
         OverlapResult->MTD = Vector2::Dot(MTD, BTM.Position - ATM.Position) > 0.f ? MTD : -MTD;
         OverlapResult->PenetrationDepth = MinOverlap;
@@ -176,9 +161,9 @@ bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseS
         return CircleCircleOverlapTest(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM, Overlap);
     }
 
-    if(AType == BType && AType == Shape::Rectangle)
+    if(AType == BType && (AType == Shape::Rectangle || AType == Shape::ConvexPolygon))
     {
-        return RectangleRectangleOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM, Overlap);
+        return ConvexConvexOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM, Overlap);
     }
 
     if(AType == Shape::Circle && BType == Shape::Rectangle)
