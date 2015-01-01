@@ -13,6 +13,7 @@ Circle::Circle(const float InRadius)
 void Circle::SetRadius(const float InRadius)
 {
     Radius = InRadius;
+    std::vector<int> tests;
 }
 
 void Circle::GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const

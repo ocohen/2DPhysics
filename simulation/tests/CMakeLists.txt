@@ -4,8 +4,6 @@ PROJECT(simulation_tests)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/extern)
 
-add_definitions(-W -Wall -ansi)
-
 set(SOURCE run.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE})

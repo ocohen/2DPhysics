@@ -8,7 +8,12 @@ include_directories(${CMAKE_SOURCE_DIR}/math)
 include_directories(${CMAKE_SOURCE_DIR}/geometry)
 include_directories(${CMAKE_SOURCE_DIR}/simulation)
 
-add_definitions(-W -Wall -ansi -Wno-c++11-extensions)
+add_definitions(-W -Wall -ansi)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    add_definitions(-Wno-c++11-extensions)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    add_definitions(-std=c++11)
+endif()
 
 add_subdirectory(math)
 add_subdirectory(geometry)

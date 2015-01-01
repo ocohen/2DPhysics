@@ -3,8 +3,6 @@ PROJECT(geometry)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_definitions(-W -Wall -ansi)
-
 set( LIB_SOURCE src/circle.cpp src/rectangle.cpp src/baseshape.cpp)
 set( LIB_HEADERS baseshape.h circle.h rectangle.h shapeoverlap.h)
 
