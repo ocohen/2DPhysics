@@ -92,9 +92,8 @@ public:
                 const Vector2& Pt = ContactPoints[ContactIdx];
                 const Vector2& Normal = Normals[ContactIdx];
                 const Vector2 Pt2 = Pt + Normal;
-                ARenderer.DrawPoint(&Pt.X, 0, 5.f);
-                ARenderer.DrawLine(&Pt.X, &Pt2.X, 0, 2.f);
-                ARenderer.DrawPoint(&Pt2.X);
+                float g[3] = {0,1,0};
+                ARenderer.DrawArrow(Pt, Pt2, g, 2);
             }
         }
         return true;

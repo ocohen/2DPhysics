@@ -31,3 +31,18 @@ void Renderer::DrawActor(const Actor* AnActor, const float* Color /*=0*/)
     }
 
 }
+
+void Renderer::DrawArrow(const Vector2& Start, const Vector2& End, const float* Color /*=0*/, const float Thickness /*=1*/)
+{
+    //make arrow head be 1/4 the length of the arrow and with 25 degrees
+    const Transform RotateLeft(Vector2::Zero, PI / 8.f);
+    const Transform RotateRight(Vector2::Zero, -PI / 8.f);
+    const Vector2 AB = End - Start;
+    const float Length = AB.Length();
+    const Vector2 Feather = -AB * 0.25f;
+    const Vector2 TipLeft = End + RotateLeft.TransformVector(Feather);
+    const Vector2 TipRight = End + RotateRight.TransformVector(Feather);
+    DrawLine(&End.X, &TipLeft.X, Color, Thickness);
+    DrawLine(&End.X, &TipRight.X, Color, Thickness);
+    DrawLine(&Start.X, &End.X, Color, Thickness);
+}

@@ -283,6 +283,15 @@ void GenerateConvexConvexManifold(const ConvexPolygon& A,const Transform& ATM, c
 
 }
 
+void GenerateConvexCircleManifold(const ConvexPolygon&, const Transform&, const Circle& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, ContactManifold& OutManifold)
+{
+    OutManifold.NumContacts = 1;
+    Contact& ContactPoint = OutManifold.ContactPoints[0];
+    ContactPoint.Normal = MTD;
+    ContactPoint.PenetrationDepth = PenetrationDepth;
+    ContactPoint.Position = BTM.Position - (MTD * B.Radius);
+}
+
 void BaseShape::GenerateManifold(const ShapeOverlap& Overlap, const Transform& ATM, const Transform& BTM, ContactManifold& OutManifold)
 {
     const BaseShape& A = *Overlap.A;
@@ -303,6 +312,12 @@ void BaseShape::GenerateManifold(const ShapeOverlap& Overlap, const Transform& A
         return;
     }
 
-    //assert(false && "Unsupported overlap test between two shapes");
+    if(AType == Shape::Rectangle && BType == Shape::Circle)
+    {
+        GenerateConvexCircleManifold(*A.Get<Rectangle>(), ATM, *B.Get<Circle>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
+        return;
+    }
+
+    assert(false && "Unsupported overlap test between two shapes");
 
 }

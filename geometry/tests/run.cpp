@@ -406,3 +406,54 @@ TEST_CASE( "Rectangle-Rectangle Contact Points", "[RectangleRectangleContactPoin
         REQUIRE(Manifold.NumContacts == 1);
     }
 }
+
+TEST_CASE( "Rectangle-Circle Contact Points", "[RectangleCircleContactPoints]" )
+{
+    Rectangle Rect1(Vector2(1,1));
+    Circle Circ1(1.f);
+    ShapeOverlap Overlap;
+    Overlap.A = &Rect1;
+    Overlap.B = &Circ1;
+    {
+        //Assume circle is at 0,0 and rectangle is at 1,0
+        Overlap.MTD = Vector2(-1,0);
+        Overlap.PenetrationDepth = 1.f;
+
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform(Vector2(1,0)), Transform(Vector2(0,0)), Manifold);
+        REQUIRE(Manifold.NumContacts == 1);
+        {
+            const Contact& AContact = Manifold.ContactPoints[0];
+            CHECK(AContact.Normal.X == Approx(-1.f));
+            CHECK(AContact.Normal.Y == Approx(0.f));
+            CHECK(AContact.Position.X == Approx(1.f));
+            CHECK(AContact.Position.Y == Approx(0.f));
+        }
+
+        //circle is at 1,1 and rectangle is at 0,0
+        Overlap.MTD = Vector2(0,1);
+        BaseShape::GenerateManifold(Overlap, Transform(Vector2(0,0)), Transform(Vector2(1,1)), Manifold);
+        REQUIRE(Manifold.NumContacts == 1);
+        {
+            const Contact& AContact = Manifold.ContactPoints[0];
+            CHECK(AContact.Normal.X == Approx(0.f));
+            CHECK(AContact.Normal.Y == Approx(1.f));
+            CHECK(AContact.Position.X == Approx(1.f));
+            CHECK(AContact.Position.Y == Approx(0.f));
+        }
+
+        //circle is at -1,-1.5 and rectangle is at 0,0
+        Overlap.MTD = Vector2(0,-1);
+        Overlap.PenetrationDepth = 0.5f;
+        BaseShape::GenerateManifold(Overlap, Transform(Vector2(0,0)), Transform(Vector2(-1,-1.5)), Manifold);
+        REQUIRE(Manifold.NumContacts == 1);
+        {
+            const Contact& AContact = Manifold.ContactPoints[0];
+            CHECK(AContact.Normal.X == Approx(0.f));
+            CHECK(AContact.Normal.Y == Approx(-1.f));
+            CHECK(AContact.Position.X == Approx(-1.f));
+            CHECK(AContact.Position.Y == Approx(-0.5f));
+        }
+    }
+}
+
