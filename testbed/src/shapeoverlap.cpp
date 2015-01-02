@@ -11,36 +11,28 @@ class ShapeOverlapTest : public Test
 public:
     bool Init(int, const char**)
     {
+        Circle DefCircle(1.f);
+        Rectangle DefRectangle(Vector2(1.f,2.f));
         {
             Actor* AnActor = AWorld.CreateActor();
             AnActor->SetWorldTransform(Transform(Vector2(-2,1), PI*.5));
-            Circle* ACircle = AnActor->CreateShape<Circle>();
-            ACircle->SetRadius(1.f);
-
-            Rectangle* ARectangle = AnActor->CreateShape<Rectangle>(Transform(Vector2(2.f,0.f)));
-            ARectangle->SetExtents(Vector2(1.f,2.f));
-            Circle* BCircle = AnActor->CreateShape<Circle>(Transform(Vector2(4.f,0.f)));
-            BCircle->SetRadius(1.f);
+            AnActor->CreateShape<Circle>(DefCircle);
+            AnActor->CreateShape<Rectangle>(DefRectangle, Transform(Vector2(2.f,0.f)));
+            AnActor->CreateShape<Circle>(DefCircle, Transform(Vector2(4.f,0.f)));
         }
 
         {
             Actor* AnActor = AWorld.CreateActor();
             AnActor->SetWorldTransform(Transform(Vector2(3,1)));
-            Circle* ACircle = AnActor->CreateShape<Circle>();
-            ACircle->SetRadius(1.f);
-
-            Rectangle* ARectangle = AnActor->CreateShape<Rectangle>(Transform(Vector2(-2.f,0.f)));
-            ARectangle->SetExtents(Vector2(1.f,2.f));
+            AnActor->CreateShape<Circle>(DefCircle);
+            AnActor->CreateShape<Rectangle>(DefRectangle, Transform(Vector2(-2.f,0.f)));
         }
 
         {
             Actor* AnActor = AWorld.CreateActor();
             AnActor->SetWorldTransform(Transform(Vector2(-5,2)));
-            Circle* ACircle = AnActor->CreateShape<Circle>();
-            ACircle->SetRadius(1.f);
-
-            Rectangle* ARectangle = AnActor->CreateShape<Rectangle>(Transform(Vector2(-2.f,2.f)));
-            ARectangle->SetExtents(Vector2(1.f,2.f));
+            AnActor->CreateShape<Circle>(DefCircle);
+            AnActor->CreateShape<Rectangle>(DefRectangle, Transform(Vector2(-2.f,2.f)));
         }
 
         return true;
@@ -52,8 +44,8 @@ public:
         const float OverlapColor[] = {1.f, 0.f, 0.f};
         const std::vector<Actor*>& Actors = AWorld.GetAllActors();
 
-        static float Rad = 0.f;
-        Rad += DeltaTime * .5;
+        static float Rad = 1.95f;
+        Rad += DeltaTime * 0.5;
 
         for(Actor* AnActor : Actors)
         {

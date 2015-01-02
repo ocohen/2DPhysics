@@ -21,7 +21,7 @@ void Actor::SetWorldTransform(const Transform& InTransform)
 
 Actor::~Actor()
 {
-    for(BaseShape* Shape : Shapes)
+    for(SimShape* Shape : Shapes)
     {
         delete Shape;
     }
@@ -31,22 +31,22 @@ bool Actor::OverlapTest(const Actor* B, std::vector<ShapeOverlap>* Overlaps) con
 {
     const Actor* A = this;
     bool bOverlap = false;
-    for(const BaseShape* AShape : A->Shapes)
+    for(const SimShape* AShape : A->Shapes)
     {
         const Transform AWorldTM = WorldTM * AShape->LocalTM;
-        for(const BaseShape* BShape : B->Shapes)
+        for(const SimShape* BShape : B->Shapes)
         {
             if(Overlaps)
             {
                 ShapeOverlap Overlap;
-                if(BaseShape::OverlapTest(*AShape, AWorldTM, *BShape, B->WorldTM * BShape->LocalTM, &Overlap))
+                if(SimShape::OverlapTest(*AShape, AWorldTM, *BShape, B->WorldTM * BShape->LocalTM, &Overlap))
                 {
                     Overlaps->push_back(Overlap);
                     bOverlap = true;
                 }
             }else
             {
-                if(BaseShape::OverlapTest(*AShape, AWorldTM, *BShape, B->WorldTM * BShape->LocalTM))
+                if(SimShape::OverlapTest(*AShape, AWorldTM, *BShape, B->WorldTM * BShape->LocalTM))
                 {
                     return true;
                 }

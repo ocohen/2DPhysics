@@ -1,7 +1,7 @@
 #ifndef OC_SHAPEOVERLAP_H
 #define OC_SHAPEOVERLAP_H
 
-#include "vector2.h"
+#include "transform.h"
 
 struct BaseShape;
 struct ShapeOverlap
@@ -12,6 +12,9 @@ struct ShapeOverlap
     Vector2 MTD;
     /** The amount of penetration along the MTD. Combine with MTD to get the minimum translation vector */
     float PenetrationDepth;
+
+    Transform AWorldTM; //A's world transform used by the overlap query
+    Transform BWorldTM; //B's world transform used by the overlap query
 
 };
 

@@ -29,7 +29,7 @@ public:
     virtual ~BaseShape(){}
     virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const = 0;
     static bool OverlapTest(const BaseShape& A, const Transform& AWorldTM, const BaseShape& B, const Transform& BWorldTM, ShapeOverlap* OverlapResult=0);
-    static void GenerateManifold(const ShapeOverlap& Overlap, const Transform& AWorldTM, const Transform& BWorldTM, ContactManifold& OutManifold);
+    static void GenerateManifold(const ShapeOverlap& Overlap, ContactManifold& OutManifold);
 
     Shape::Type GetType() const { return ShapeType; }
 
@@ -38,9 +38,6 @@ public:
 
     template <typename T>
     const T* Get() const;
-
-public:
-    Transform LocalTM;
 
 private:
     Shape::Type ShapeType; 

@@ -15,10 +15,9 @@ Renderer::Renderer(float Width, float Height)
 void Renderer::DrawActor(const Actor* AnActor, const float* Color /*=0*/)
 {
     const Transform& WorldTM = AnActor->GetWorldTransform();
-    const std::vector<BaseShape*>& BaseShapes = AnActor->GetShapes();
-    for(BaseShape* Shape : BaseShapes)
+    const std::vector<SimShape*>& Shapes = AnActor->GetShapes();
+    for(SimShape* Shape : Shapes)
     {
-
         std::vector<Vector2> Vertices;
         Shape->GenerateRenderVertices(Vertices, WorldTM * Shape->LocalTM);
 
@@ -38,7 +37,6 @@ void Renderer::DrawArrow(const Vector2& Start, const Vector2& End, const float* 
     const Transform RotateLeft(Vector2::Zero, PI / 8.f);
     const Transform RotateRight(Vector2::Zero, -PI / 8.f);
     const Vector2 AB = End - Start;
-    const float Length = AB.Length();
     const Vector2 Feather = -AB * 0.25f;
     const Vector2 TipLeft = End + RotateLeft.TransformVector(Feather);
     const Vector2 TipRight = End + RotateRight.TransformVector(Feather);

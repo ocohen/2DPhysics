@@ -52,25 +52,10 @@ void World::GenerateContactManifolds()
            {
                for(ShapeOverlap& Overlap : Overlaps)
                {
-                   bool bSwap = false;
-                   const std::vector<BaseShape*>& Shapes = A->GetShapes();
-                   for(BaseShape* Shape : Shapes)
-                   {
-                       if(Shape == Overlap.B)
-                       {
-                           bSwap = true;
-                           break;
-                       }
-                   }
-
                    ContactManifold AManifold;
-                   AManifold.A = bSwap ? B : A;
-                   AManifold.B = bSwap ? A : B;
-                   const Transform AATM = A->GetWorldTransform();
-                   const Transform ABTM = B->GetWorldTransform();
-                   const Transform ATM = (bSwap ? ABTM : AATM) * Overlap.A->LocalTM;
-                   const Transform BTM = (bSwap ? AATM : ABTM) * Overlap.B->LocalTM;
-                   BaseShape::GenerateManifold(Overlap, ATM, BTM, AManifold);
+                   AManifold.A = A;
+                   AManifold.B = B;
+                   BaseShape::GenerateManifold(Overlap, AManifold);
 
                    ContactManifolds.push_back(AManifold);
 

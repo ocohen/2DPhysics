@@ -3,6 +3,7 @@
 
 #include "transform.h"
 #include "shapeoverlap.h"
+#include "simshape.h"
 #include <vector>
 
 struct BaseShape;
@@ -17,23 +18,34 @@ public:
     World* GetWorld() const { return MyWorld; }
     void SetWorldTransform(const Transform& InTransform);
     const Transform& GetWorldTransform() const { return WorldTM; }
-    template <typename T> T* CreateShape(const Transform& LocalTM = Transform::Identity);
-    const std::vector<BaseShape*>& GetShapes() const { return Shapes; }
+    template <typename T> SimShape* CreateShape(const Transform& LocalTM = Transform::Identity);
+    template <typename T> SimShape* CreateShape(const T& InGeometry, const Transform& LocalTM = Transform::Identity);
+    const std::vector<SimShape*>& GetShapes() const { return Shapes; }
     bool OverlapTest(const Actor* Other, std::vector<ShapeOverlap>* Overlaps = 0) const;
 
 private:
     Transform WorldTM;
     World* MyWorld;
     bool bIsKinematic;
-    std::vector<BaseShape*> Shapes;
+    std::vector<SimShape*> Shapes;
 };
 
-template <typename T> T* Actor::CreateShape(const Transform& LocalTM)
+template <typename T> SimShape* Actor::CreateShape(const Transform& LocalTM)
 {
     T* NewShape = new T();
-    NewShape->LocalTM = LocalTM;
-    Shapes.push_back(NewShape);
-    return NewShape;
+    SimShape* NewSimShape = new SimShape(NewShape);
+    NewSimShape->LocalTM = LocalTM;
+    Shapes.push_back(NewSimShape);
+    return NewSimShape;
+}
+
+template <typename T> SimShape* Actor::CreateShape(const T& InGeometry, const Transform& LocalTM)
+{
+    T* NewShape = new T(InGeometry);
+    SimShape* NewSimShape = new SimShape(NewShape);
+    NewSimShape->LocalTM = LocalTM;
+    Shapes.push_back(NewSimShape);
+    return NewSimShape;
 }
 
 #endif
