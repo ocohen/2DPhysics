@@ -148,7 +148,7 @@ bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseS
         return CircleCircleOverlapTest(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM, Overlap);
     }
 
-    if(AType == BType && (AType == Shape::Rectangle || AType == Shape::ConvexPolygon))
+    if(AType == BType && (AType == Shape::Rectangle))
     {
         return ConvexConvexOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM, Overlap);
     }
@@ -175,68 +175,111 @@ void GenerateCircleCircleManifold(const Circle&,const Transform&, const Circle& 
     ConctactPoint.Position = BTM.Position - MTD * B.Radius;
 }
 
-void GenerateRectangleRectangleManifold(const Rectangle& A,const Transform& ATM, const Rectangle& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, ContactManifold& ManifoldOut)
+/* Given a Dir and a set of vertices, find the closest two vertices */
+void GetTwoClosest(const Vector2& Dir, const Vector2 Vertices[], const int NumVertices, int& Closest, int& Second)
 {
-    //first we find which shape is the reference shape (the one whos face is identical to MTD)
-
-    Vector2 Normals[8];
-    Normals[0] = ATM.TransformVector(Vector2(1,0));
-    Normals[1] = ATM.TransformVector(Vector2(0,1));
-    Normals[2] = ATM.TransformVector(Vector2(-1,0));
-    Normals[3] = ATM.TransformVector(Vector2(0,-1));
-    Normals[4] = BTM.TransformVector(Vector2(1,0));
-    Normals[5] = BTM.TransformVector(Vector2(0,1));
-    Normals[6] = BTM.TransformVector(Vector2(-1,0));
-    Normals[7] = BTM.TransformVector(Vector2(0,-1));
-
-    Vector2 LocalNormals[8];
-    LocalNormals[0] = Vector2(1,0);
-    LocalNormals[1] = Vector2(0,1);
-    LocalNormals[2] = Vector2(-1,0);
-    LocalNormals[3] = Vector2(0,-1);
-    LocalNormals[4] = Vector2(1,0);
-    LocalNormals[5] = Vector2(0,1);
-    LocalNormals[6] = Vector2(-1,0);
-    LocalNormals[7] = Vector2(0,-1);
-
-    int RefIdx = -1;
-    for(int NormalIdx = 0; NormalIdx < 8; ++NormalIdx)
+    float MaxProjection = -std::numeric_limits<float>::max();
+    float SecondMaxProjection = -std::numeric_limits<float>::max();
+    int MaxIdx = -1;
+    int SecondMaxIdx = -1;
+    for(int VertIdx = 0; VertIdx < NumVertices; ++VertIdx)
     {
-        const Vector2& Normal = Normals[NormalIdx];
-        if(Vector2::Dot(Normal, MTD) < SMALL_NUMBER)
+        const Vector2& V = Vertices[VertIdx];
+        const float Projection = Vector2::Dot(V, Dir);
+        if(Projection > SecondMaxProjection)
         {
-            RefIdx = NormalIdx;
-            break;
+            SecondMaxProjection = Projection;
+            SecondMaxIdx = VertIdx;
+        }
+           
+        if(Projection > MaxProjection)
+        {
+            SecondMaxProjection = MaxProjection;
+            SecondMaxIdx = MaxIdx;
+            MaxProjection = Projection;
+            MaxIdx = VertIdx;
         }
     }
 
-    assert:(RefIdx >= 0);
-    const Vector2& RefNormal = Normals[RefIdx];
-    const Vector2& RefNormalLocal = LocalNormals[RefIdx];
+    Closest = MaxIdx;
+    Second = SecondMaxIdx;
+}
 
-    //now find which edge on the other shape is closest
-    int MinIdx = -1;
-    float MinDot = std::numeric_limits<float>::max();
-    const bool bAToB = RefIdx < 4;
+/** Will ensure B1 and B2 are within the halfplane defined by the A1A2 edge and will clip B1 or B2 if needed.*/
+void Clip(const Vector2& A1, const Vector2& A2, Vector2& B1, Vector2& B2)
+{
+    const Vector2 A1A2Dir = (A2 - A1).GetSafeNormal();
+    const Vector2 A1B1 = B1 - A1;
+    const Vector2 A1B2 = B2 - A1;
 
-    for(int Count = 0; Count < 4; ++Count)
+    const float A1B1Proj = Vector2::Dot(A1B1, A1A2Dir);
+    const float A1B2Proj = Vector2::Dot(A1B2, A1A2Dir);
+
+    if(A1B1Proj < 0)
     {
-        const int NormalIdx = bAToB ? Count : Count + 4;
-        const Vector2& Normal = Normals[NormalIdx];
-        const float Dot = Vector2::Dot(Normal, MTD);
-
-        if(Dot < MinDot)
-        {
-            MinDot = Dot;
-            MinIdx = NormalIdx;
-        }
+        const Vector2 A1B1Projected = (A1 + (A1A2Dir * A1B1Proj));
+        const Vector2 A1ToA1B1Projected = A1B1Projected - A1;
+        const Vector2 A1B1ProjectedToB1 = A1B1 - A1ToA1B1Projected;
+        B1 = A1 + A1B1ProjectedToB1;
     }
 
-    assert(MinIdx >= 0);
-    const Vector2& IncNormal = Normals[MinIdx];
-    const Vector2& IncNormalLocal = LocalNormals[MinIdx];
+    if(A1B2Proj < 0)
+    {
+        const Vector2 A1B2Projected = (A1 + (A1A2Dir * A1B2Proj));
+        const Vector2 A1ToA1B2Projected = A1B2Projected - A1;
+        const Vector2 A1B2ProjectedToB2 = A1B2 - A1ToA1B2Projected;
+        B2 = A1 + A1B2ProjectedToB2;
+    }
+}
 
-    //we now have the two normals that are closest. We'll use the extents of the first shape to clip the contact points of the second shape
+void GenerateConvexConvexManifold(const ConvexPolygon& A,const Transform& ATM, const ConvexPolygon& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, ContactManifold& OutManifold)
+{
+    //We are going to clip the closest incident vertices (B) so that they are within the halfplane defined by the closest vertices of A
+
+    std::vector<Vector2> Positions;
+    A.ComputeWorldPositions(Positions, ATM);
+    B.ComputeWorldPositions(Positions, BTM);
+
+    const int NumAVertices = A.GetNumVertices();
+    const int NumBVertices = B.GetNumVertices();
+
+    int AV1Idx, AV2Idx;
+    GetTwoClosest(MTD, &Positions[0], NumAVertices, AV1Idx, AV2Idx);
+    assert(AV1Idx >= 0 && AV2Idx >= 0);
+    const Vector2& AV1 = Positions[AV1Idx];
+    const Vector2& AV2 = Positions[AV2Idx];
+
+    int BV1Idx, BV2Idx;
+    GetTwoClosest(-MTD, &Positions[NumAVertices], NumBVertices, BV1Idx, BV2Idx);
+    assert(BV1Idx >= 0 && BV2Idx >= 0);
+    Vector2 BV1 = Positions[BV1Idx + NumAVertices];
+    Vector2 BV2 = Positions[BV2Idx + NumAVertices];
+
+    Clip(AV1, AV2, BV1, BV2);
+    Clip(AV2, AV1, BV1, BV2);
+
+    //now we cull out anything that's on the wrong end of the MTD
+    const bool bBV1Valid = Vector2::Dot(BV1 - AV1, -MTD) >= 0;
+    const bool bBV2Valid = Vector2::Dot(BV2 - AV1, -MTD) >= 0;
+
+    OutManifold.NumContacts = 0;
+    if(bBV1Valid)
+    {
+        Contact& NewContact = OutManifold.ContactPoints[OutManifold.NumContacts++];
+        NewContact.Position = BV1;
+        NewContact.PenetrationDepth = PenetrationDepth;
+        NewContact.Normal = MTD;
+    }
+
+    if(bBV2Valid)
+    {
+        Contact& NewContact = OutManifold.ContactPoints[OutManifold.NumContacts++];
+        NewContact.Position = BV2;
+        NewContact.PenetrationDepth = PenetrationDepth;
+        NewContact.Normal = MTD;
+    }
+
+    
 
 }
 
@@ -254,9 +297,9 @@ void BaseShape::GenerateManifold(const ShapeOverlap& Overlap, const Transform& A
         return;
     }
 
-    if(AType == BType && AType == Shape::Rectangle)
+    if(AType == BType && (AType == Shape::Rectangle))
     {
-        GenerateRectangleRectangleManifold(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
+        GenerateConvexConvexManifold(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
         return;
     }
 

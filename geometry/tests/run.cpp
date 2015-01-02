@@ -5,6 +5,7 @@
 #include "rectangle.h"
 #include "shapeoverlap.h"
 #include "convexpolygon.h"
+#include "contactmanifold.h"
 
 TEST_CASE( "Rendering Shapes", "[renderingshapes]")
 {
@@ -254,6 +255,17 @@ TEST_CASE( "Convex Shapes", "[convexshapes]")
         Rectangle Rect(Vector2(2.f, 1.f));
         const std::vector<Vector2>& Vertices = Rect.GetVertices();
         REQUIRE(Vertices.size() == 4);
+        CHECK(Vertices[0].X == Approx(2.f));
+        CHECK(Vertices[0].Y == Approx(-1.f));
+
+        CHECK(Vertices[1].X == Approx(2.f));
+        CHECK(Vertices[1].Y == Approx(1.f));
+
+        CHECK(Vertices[2].X == Approx(-2.f));
+        CHECK(Vertices[2].Y == Approx(1.f));
+        
+        CHECK(Vertices[3].X == Approx(-2.f));
+        CHECK(Vertices[3].Y == Approx(-1.f));
 
         std::vector<Vector2> Normals;
         Rect.ComputeNormals(Normals);
@@ -269,5 +281,128 @@ TEST_CASE( "Convex Shapes", "[convexshapes]")
 
         CHECK(Normals[3].X == Approx(0.f));
         CHECK(Normals[3].Y == Approx(-1.f));
+    }
+}
+
+TEST_CASE( "Circle-Circle Contact Points", "[circleCircleContactPoints]" )
+{
+    Circle Circ1(1.f);
+    Circle Circ2(2.f);
+    ShapeOverlap Overlap;
+    Overlap.A = &Circ1;
+    Overlap.B = &Circ2;
+    {
+        //Assume two circles are at position 0,0 and 2,0
+        Overlap.MTD = Vector2(1,0);
+        Overlap.PenetrationDepth = 2.f;
+
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform::Identity, Transform(Vector2(2,0)), Manifold);
+        REQUIRE(Manifold.NumContacts == 1);
+        const Contact& AContact = Manifold.ContactPoints[0];
+        CHECK(AContact.Normal.X == Approx(1.f));
+        CHECK(AContact.Normal.Y == Approx(0.f));
+        CHECK(AContact.Position.X == Approx(0.f));
+        CHECK(AContact.Position.Y == Approx(0.f));
+    }
+
+    {
+        //Assume two circles are at position 4,0 and 2,0
+        Overlap.MTD = Vector2(-1,0);
+        Overlap.PenetrationDepth = 2.f;
+
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform(Vector2(4,0)), Transform(Vector2(2,0)), Manifold);
+        REQUIRE(Manifold.NumContacts == 1);
+        const Contact& AContact = Manifold.ContactPoints[0];
+        CHECK(AContact.Normal.X == Approx(-1.f));
+        CHECK(AContact.Normal.Y == Approx(0.f));
+        CHECK(AContact.Position.X == Approx(4.f));
+        CHECK(AContact.Position.Y == Approx(0.f));
+    }
+
+    {
+        const float sq22 = sqrt(2.f) / 2.f;
+        //Assume two circles are at position 0,0 and 2,2
+        Overlap.MTD = Vector2(sq22, sq22);
+        Overlap.PenetrationDepth = 2.f - sq22;
+
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform(Vector2(0,0)), Transform(Vector2(2,2)), Manifold);
+        REQUIRE(Manifold.NumContacts == 1);
+        const Contact& AContact = Manifold.ContactPoints[0];
+        CHECK(AContact.Normal.X == Approx(sq22));
+        CHECK(AContact.Normal.Y == Approx(sq22));
+        CHECK(AContact.Position.X == Approx(2 - 2.f*sq22));
+        CHECK(AContact.Position.Y == Approx(2 - 2.f*sq22));
+    }
+}
+
+TEST_CASE( "Rectangle-Rectangle Contact Points", "[RectangleRectangleContactPoints]" )
+{
+    Rectangle Rect1(Vector2(1,1));
+    Rectangle Rect2(Vector2(2,1));
+    ShapeOverlap Overlap;
+    Overlap.A = &Rect1;
+    Overlap.B = &Rect2;
+    {
+        //Assume two Rectangles are at position 0,0 and 2,0
+        Overlap.MTD = Vector2(1,0);
+        Overlap.PenetrationDepth = 2.f;
+
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform::Identity, Transform(Vector2(2,0)), Manifold);
+        REQUIRE(Manifold.NumContacts == 2);
+        {
+            const Contact& AContact = Manifold.ContactPoints[0];
+            CHECK(AContact.Normal.X == Approx(1.f));
+            CHECK(AContact.Normal.Y == Approx(0.f));
+            CHECK(AContact.Position.X == Approx(0.f));
+            CHECK(AContact.Position.Y == Approx(1.f));
+        }
+
+        {
+            const Contact& AContact = Manifold.ContactPoints[1];
+            CHECK(AContact.Normal.X == Approx(1.f));
+            CHECK(AContact.Normal.Y == Approx(0.f));
+            CHECK(AContact.Position.X == Approx(0.f));
+            CHECK(AContact.Position.Y == Approx(-1.f));
+        }
+    }
+
+    {
+        //Assume two Rectangles are at position 0,0 and 2,0.1
+        Overlap.MTD = Vector2(1,0);
+        Overlap.PenetrationDepth = 2.f;
+
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform::Identity, Transform(Vector2(2,0.1)), Manifold);
+        REQUIRE(Manifold.NumContacts == 2);
+        {
+            const Contact& AContact = Manifold.ContactPoints[0];
+            CHECK(AContact.Normal.X == Approx(1.f));
+            CHECK(AContact.Normal.Y == Approx(0.f));
+            CHECK(AContact.Position.X == Approx(0.f));
+            CHECK(AContact.Position.Y == Approx(1.f));
+        }
+
+        {
+            const Contact& AContact = Manifold.ContactPoints[1];
+            CHECK(AContact.Normal.X == Approx(1.f));
+            CHECK(AContact.Normal.Y == Approx(0.f));
+            CHECK(AContact.Position.X == Approx(0.f));
+            CHECK(AContact.Position.Y == Approx(-0.9f));
+        }
+    }
+
+    {
+        //Assume two Rectangles are at position 0,0 and 0,1+sqrt(2)
+        Rect2.SetExtents(Vector2(1,1));
+        Overlap.MTD = Vector2(0,1);
+        Overlap.PenetrationDepth = 0.001f;
+
+        ContactManifold Manifold;
+        BaseShape::GenerateManifold(Overlap, Transform::Identity, Transform(Vector2(0,1 + sqrt(2) - 0.001), PI / 4.f), Manifold);
+        REQUIRE(Manifold.NumContacts == 1);
     }
 }
