@@ -19,6 +19,8 @@ public:
 
             Rectangle* ARectangle = AnActor->CreateShape<Rectangle>(Transform(Vector2(2.f,0.f)));
             ARectangle->SetExtents(Vector2(1.f,2.f));
+            Circle* BCircle = AnActor->CreateShape<Circle>(Transform(Vector2(4.f,0.f)));
+            BCircle->SetRadius(1.f);
         }
 
         {
@@ -51,7 +53,7 @@ public:
         const std::vector<Actor*>& Actors = AWorld.GetAllActors();
 
         static float Rad = 0.f;
-        Rad += DeltaTime;
+        Rad += DeltaTime * .5;
 
         for(Actor* AnActor : Actors)
         {
@@ -59,18 +61,41 @@ public:
             AnActor->SetWorldTransform(Transform(TM.Position, Rad));
         }
 
+        AWorld.GenerateContactManifolds();
+        const std::vector<ContactManifold>& Manifolds = AWorld.GetContactManifolds();
+
         for(const Actor* AnActor : Actors)
         {
+            std::vector<Vector2> Normals;
+            std::vector<Vector2> ContactPoints;
             bool bOverlap = false;
-            for(Actor* BActor : Actors)
+            for(const ContactManifold& Manifold : Manifolds)
             {
-                if(BActor != AnActor)
+                if(AnActor == Manifold.A || AnActor == Manifold.B)
                 {
-                    bOverlap |= AnActor->OverlapTest(BActor);
+                    bOverlap = true;
+                    for(int ContactIdx = 0; ContactIdx < Manifold.NumContacts; ++ContactIdx)
+                    {
+                        if(AnActor == Manifold.A)
+                        {
+                            const Contact& AContact = Manifold.ContactPoints[ContactIdx];
+                            ContactPoints.push_back(AContact.Position);
+                            Normals.push_back(AContact.Normal);
+                        }
+                    }
                 }
             }
 
             ARenderer.DrawActor(AnActor, bOverlap ? OverlapColor : DefaultColor);
+            for(size_t ContactIdx = 0; ContactIdx < ContactPoints.size(); ++ContactIdx)
+            {
+                const Vector2& Pt = ContactPoints[ContactIdx];
+                const Vector2& Normal = Normals[ContactIdx];
+                const Vector2 Pt2 = Pt + Normal;
+                ARenderer.DrawPoint(&Pt.X, 0, 5.f);
+                ARenderer.DrawLine(&Pt.X, &Pt2.X, 0, 2.f);
+                ARenderer.DrawPoint(&Pt2.X);
+            }
         }
         return true;
     }

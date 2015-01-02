@@ -303,6 +303,6 @@ void BaseShape::GenerateManifold(const ShapeOverlap& Overlap, const Transform& A
         return;
     }
 
-    assert(false && "Unsupported overlap test between two shapes");
+    //assert(false && "Unsupported overlap test between two shapes");
 
 }

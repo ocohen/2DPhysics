@@ -38,71 +38,29 @@ World::~World()
     }
 }
 
-struct ManifoldKey
-{
-    Actor* A;
-    Actor* B;
-
-    ManifoldKey(Actor* InA, Actor* InB) : A(InA), B(InB){}
-    bool operator==(const ManifoldKey& Other) const
-    {
-        return (A == Other.A && B == Other.B) || (A == Other.B && B == Other.A);
-    }
-
-    bool operator<(const ManifoldKey& Other) const
-    {
-        size_t Min = std::min((size_t)A,(size_t)B);
-        size_t Max = std::max((size_t)A,(size_t)B);
-        size_t OtherMin = std::min((size_t)Other.A,(size_t)Other.B);
-        size_t OtherMax = std::max((size_t)Other.A,(size_t)Other.B);
-
-        if(Max < OtherMax)
-        {
-            return true;
-        }
-
-        if(Max > OtherMax)
-        {
-            return false;
-        }
-
-        return Min < OtherMin;
-    }
-};
-
 void World::GenerateContactManifolds()
 {
     ContactManifolds.clear();
-    std::set<ManifoldKey> ManifoldDB;
-    for(Actor* A : Actors)
+    for(size_t AIdx = 0, NumActors = Actors.size(); AIdx < NumActors; ++AIdx)
     {
-        for(Actor* B: Actors)
+        Actor* A = Actors[AIdx];
+        for(size_t BIdx = AIdx + 1, NumActors = Actors.size(); BIdx < NumActors; ++BIdx)
         {
-            if(A != B)
-            {
-               std::vector<ShapeOverlap> Overlaps;
-               if(A->OverlapTest(B, &Overlaps))
+           Actor* B = Actors[BIdx];
+           std::vector<ShapeOverlap> Overlaps;
+           if(A->OverlapTest(B, &Overlaps))
+           {
+               for(ShapeOverlap& Overlap : Overlaps)
                {
-                   ManifoldKey Key(A,B);
-                   auto Result = ManifoldDB.find(Key);
-                   if(Result == ManifoldDB.end())
-                   {
-                       ContactManifold AManifold;
-                       AManifold.A = A;
-                       AManifold.B = B;
-                       AManifold.NumContacts = std::min(Overlaps.size(), sizeof(AManifold.ContactPoints) / sizeof(ShapeOverlap));
-                       for(int OverlapIdx = 0; OverlapIdx < AManifold.NumContacts; ++OverlapIdx)
-                       {
-                           const ShapeOverlap& Overlap = Overlaps[OverlapIdx];
-                           const Transform ATM = A->GetWorldTransform() * Overlap.A->LocalTM;
-                           const Transform BTM = B->GetWorldTransform() * Overlap.B->LocalTM;
-                           BaseShape::GenerateManifold(Overlap, ATM, BTM, AManifold);
-                       }
 
-                       ContactManifolds.push_back(AManifold);
-                       ManifoldDB.insert(Key);
+                   ContactManifold AManifold;
+                   AManifold.A = A;
+                   AManifold.B = B;
+                   const Transform ATM = A->GetWorldTransform() * Overlap.A->LocalTM;
+                   const Transform BTM = B->GetWorldTransform() * Overlap.B->LocalTM;
+                   BaseShape::GenerateManifold(Overlap, ATM, BTM, AManifold);
 
-                   }
+                   ContactManifolds.push_back(AManifold);
 
                } 
             }
