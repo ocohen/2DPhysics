@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 PROJECT(simulation)
 
+include_directories(${CMAKE_SOURCE_DIR}/math)
+include_directories(${CMAKE_SOURCE_DIR}/geometry)
+include_directories(${CMAKE_SOURCE_DIR}/simulation)
+
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 set( LIB_SOURCE src/actor.cpp src/world.cpp src/simshape.cpp)

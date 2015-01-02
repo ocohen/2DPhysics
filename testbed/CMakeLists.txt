@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 PROJECT(testbed)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+
+include_directories(${CMAKE_SOURCE_DIR}/math)
+include_directories(${CMAKE_SOURCE_DIR}/geometry)
+include_directories(${CMAKE_SOURCE_DIR}/simulation)
 include_directories(${CMAKE_SOURCE_DIR}/extern)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 

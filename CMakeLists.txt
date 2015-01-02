@@ -4,9 +4,6 @@ PROJECT(2DPhysics)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR})
-include_directories(${CMAKE_SOURCE_DIR}/math)
-include_directories(${CMAKE_SOURCE_DIR}/geometry)
-include_directories(${CMAKE_SOURCE_DIR}/simulation)
 
 add_definitions(-W -Wall -ansi)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
