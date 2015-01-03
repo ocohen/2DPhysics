@@ -33,6 +33,7 @@ public:
     void SetAngularAcceleration(const float InAcceleration);
     float GetAngularAcceleration() const { return AngularAcceleration; }
     void AddForce(const Vector2& InForce);
+    void AddForceAtLocation(const Vector2& InForce, const Vector2& Location);
     void AddTorque(const float InTorque);
 
     /** mass COM inertia, etc... */

@@ -178,4 +178,16 @@ TEST_CASE( "Forces", "[forces]" )
         Obj->AddTorque(6.666666667f);
         CHECK(Obj->GetAngularAcceleration() == Approx(1.f));
     }
+
+    {
+        //properly convert force at location into a torque and force at COM
+        World AWorld;
+        Actor* Obj = AWorld.CreateActor();
+        Obj->CreateShape<Circle>();
+        Obj->AddForceAtLocation(Vector2(0.f, 1.f), Vector2(1.f, 0.f));
+        const Vector2& LinearAcceleration = Obj->GetLinearAcceleration();
+        CHECK(LinearAcceleration.X == Approx(0.f));
+        CHECK(LinearAcceleration.Y == Approx(1.f));
+        CHECK(Obj->GetAngularAcceleration() == Approx(1.f));
+    }
 }

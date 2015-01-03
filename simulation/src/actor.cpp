@@ -87,6 +87,14 @@ void Actor::AddForce(const Vector2& InForce)
     LinearAcceleration += (InForce * InverseMass);
 }
 
+void Actor::AddForceAtLocation(const Vector2& InForce, const Vector2& Location)
+{
+    AddForce(InForce);
+    const Vector2 R = Location - LocalCOM;
+    const float Torque = R.X*InForce.Y - R.Y*InForce.X;
+    AddTorque(Torque);
+}
+
 void Actor::AddTorque(const float InTorque)
 {
     AngularAcceleration += (InTorque * InverseMOI);
