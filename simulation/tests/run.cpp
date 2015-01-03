@@ -9,7 +9,7 @@
 TEST_CASE( "Actor", "[actor]" )
 {
     World World1;
-    
+
     {
         Actor* AnActor = World1.CreateActor();
         AnActor->SetKinematic(true);
@@ -20,7 +20,7 @@ TEST_CASE( "Actor", "[actor]" )
 
         SimShape* ACircle = AnActor->CreateShape<Circle>();
         CHECK(ACircle);
-        
+
         SimShape* ARectangle = AnActor->CreateShape<Rectangle>();
         CHECK(ARectangle);
 
@@ -61,7 +61,7 @@ TEST_CASE( "World", "[world]" )
 
     Actor* Actor2 = AWorld.CreateActor();
     CHECK(Actor2->GetWorld() == &AWorld);
-    
+
     const std::vector<Actor*>& Actors = AWorld.GetAllActors();
     CHECK(Actors.size() == 2);
 }
@@ -122,6 +122,28 @@ TEST_CASE( "Integration", "[integration]" )
         CHECK(TM.Position.Y == Approx(1.f));
         CHECK(TM.Rotation == Approx(0.5f));
     }
+
+    {
+        //Make sure rotation happens about COM
+        World AWorld;
+        Actor* Obj = AWorld.CreateActor();
+        Obj->CreateShape<Circle>();
+        Obj->CreateShape<Circle>(Transform(Vector2(2.f, 0.f)));
+        Obj->CalculateCOM();
+        REQUIRE(Obj->GetWorldCOM().X == Approx(1.f));
+
+        Obj->SetAngularVelocity(PI * 0.5);
+        for(int Step = 0; Step < 2; ++Step)
+        {
+            AWorld.Integrate(.5);
+        }
+
+        const Transform TM = Obj->GetWorldTransform();
+        CHECK(TM.Position.X == Approx(1.f));
+        CHECK(TM.Position.Y == Approx(-1.f));
+        CHECK(TM.Rotation == Approx(0.5f * PI));
+    }
+
 }
 
 TEST_CASE( "Forces", "[forces]" )
@@ -151,7 +173,7 @@ TEST_CASE( "Forces", "[forces]" )
         Circ1->SetMass(10.f);
         SimShape* Circ2 = Ball->CreateShape<Circle>();
         Circ2->SetMass(2.f);
-        Ball->UpdateMassAndInertia();
+        Ball->CalculateMassInertiaAndCOM();
         CHECK(Ball->GetMass() == Approx(12.f));
         Ball->AddForce(Vector2(1,2));
         const Vector2& LinearAcceleration = Ball->GetLinearAcceleration();
@@ -169,8 +191,8 @@ TEST_CASE( "Forces", "[forces]" )
         SimShape* Circ2 = Obj->CreateShape<Circle>(Transform(Vector2(-1,0)));
         Circ2->SetMass(2.f);
         Circ2->SetMomentOfInertia(3.f);
-        Obj->UpdateMassAndInertia();
-        const Vector2& COM = Obj->GetWorldTransform().TransformPosition(Obj->GetLocalCOM());
+        Obj->CalculateMassInertiaAndCOM();
+        const Vector2& COM = Obj->GetWorldCOM();
         CHECK(COM.X == Approx( -1.f / 3 ));
         CHECK(COM.Y == Approx( 0.f ));
         const float MOI = Obj->GetMomentOfInertia();

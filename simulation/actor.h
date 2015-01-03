@@ -39,8 +39,13 @@ public:
     /** mass COM inertia, etc... */
     float GetMass() const { return 1.f / InverseMass; }
     float GetMomentOfInertia() const { return 1.f / InverseMOI; }
-    void UpdateMassAndInertia();
+    void CalculateMassAndInertia();
+    void CalculateMassInertiaAndCOM();
+    void CalculateCOM();
+    void CalculateMass();
+    void CalculateInertia();
     const Vector2& GetLocalCOM() const { return LocalCOM; }
+    Vector2 GetWorldCOM() const { return WorldTM.TransformPosition(LocalCOM); }
 
 private:
     Transform WorldTM;
@@ -63,7 +68,7 @@ template <typename T> SimShape* Actor::CreateShape(const Transform& LocalTM)
     SimShape* NewSimShape = new SimShape(NewShape);
     NewSimShape->LocalTM = LocalTM;
     Shapes.push_back(NewSimShape);
-    UpdateMassAndInertia();
+    CalculateMassInertiaAndCOM();
     return NewSimShape;
 }
 
@@ -73,7 +78,7 @@ template <typename T> SimShape* Actor::CreateShape(const T& InGeometry, const Tr
     SimShape* NewSimShape = new SimShape(NewShape);
     NewSimShape->LocalTM = LocalTM;
     Shapes.push_back(NewSimShape);
-    UpdateMassAndInertia();
+    CalculateMassInertiaAndCOM();
     return NewSimShape;
 }
 

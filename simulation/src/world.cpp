@@ -74,8 +74,15 @@ void World::Integrate(const float DeltaTime)
         const Vector2 Offset = A->GetLinearVelocity() * DeltaTime + 0.5f * A->GetLinearAcceleration() * DeltaTime2;
         const float AngularOffset = A->GetAngularVelocity() * DeltaTime + 0.5f * A->GetAngularAcceleration() * DeltaTime2;
 
+        //We need to rotate A about its COM
         const Transform& TM = A->GetWorldTransform();
-        const Transform NewTM = Transform(TM.Position + Offset, TM.Rotation + AngularOffset);
+        const Vector2 COMToA = -A->GetLocalCOM();
+        const Transform RotateAboutCOM(Vector2::Zero, AngularOffset);
+        const Vector2 RotatedCOMToA = RotateAboutCOM.TransformVector(COMToA);
+        const Vector2 RotationOffset = RotatedCOMToA - COMToA;
+        const Vector2 RotationOffsetWorldSpace = TM.TransformVector(RotationOffset);
+
+        const Transform NewTM = Transform(TM.Position + Offset + RotationOffsetWorldSpace, TM.Rotation + AngularOffset);
         A->SetWorldTransform(NewTM);
 
         const Vector2 NewLinearVelocity = (A->GetLinearAcceleration() * DeltaTime) + A->GetLinearVelocity();

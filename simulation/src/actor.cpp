@@ -7,6 +7,7 @@ Actor::Actor(World* InWorld)
 , bIsKinematic(false)
 , LinearAcceleration(Vector2::Zero)
 , LinearVelocity(Vector2::Zero)
+, LocalCOM(Vector2::Zero)
 , AngularAcceleration(0.f)
 , AngularVelocity(0.f)
 , InverseMass(1.f)
@@ -90,7 +91,7 @@ void Actor::AddForce(const Vector2& InForce)
 void Actor::AddForceAtLocation(const Vector2& InForce, const Vector2& Location)
 {
     AddForce(InForce);
-    const Vector2 R = Location - LocalCOM;
+    const Vector2 R = Location - WorldTM.TransformPosition(LocalCOM);
     const float Torque = R.X*InForce.Y - R.Y*InForce.X;
     AddTorque(Torque);
 }
@@ -100,19 +101,30 @@ void Actor::AddTorque(const float InTorque)
     AngularAcceleration += (InTorque * InverseMOI);
 }
 
-void Actor::UpdateMassAndInertia()
+void Actor::CalculateMass()
 {
     float TotalMass = 0.f;
-    Vector2 TotalCOMs = Vector2::Zero;
     for(SimShape* Shape : Shapes)
     {
         TotalMass += Shape->GetMass();
-        TotalCOMs += Shape->GetMass() * Shape->LocalTM.TransformPosition(Shape->GetLocalCOM());
     }
 
     InverseMass = 1.f / TotalMass;
-    LocalCOM = TotalCOMs * InverseMass;
+}
 
+void Actor::CalculateCOM()
+{
+    Vector2 TotalCOMs = Vector2::Zero;
+    for(SimShape* Shape : Shapes)
+    {
+        TotalCOMs += Shape->GetMass() * Shape->LocalTM.TransformPosition(Shape->GetLocalCOM());
+    }
+
+    LocalCOM = TotalCOMs * InverseMass;
+}
+
+void Actor::CalculateInertia()
+{
     float TotalMOI = 0.f;
     for(SimShape* Shape : Shapes)
     {
@@ -124,5 +136,18 @@ void Actor::UpdateMassAndInertia()
     }
 
     InverseMOI = 1.f / TotalMOI;
+}
 
+void Actor::CalculateMassAndInertia()
+{
+    CalculateMass();
+    CalculateInertia();
+
+}
+
+void Actor::CalculateMassInertiaAndCOM()
+{
+    CalculateMass();
+    CalculateCOM();
+    CalculateInertia();
 }

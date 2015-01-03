@@ -29,6 +29,10 @@ void Renderer::DrawActor(const Actor* AnActor, const float* Color /*=0*/)
         DrawLine(&Vertices[Vertices.size()-1].X, &Vertices[0].X, Color);
     }
 
+    const float green[] = {0,1,0};
+    const Vector2& COM = AnActor->GetWorldCOM();
+    DrawPoint(&COM.X, &green[0]);
+
 }
 
 void Renderer::DrawArrow(const Vector2& Start, const Vector2& End, const float* Color /*=0*/, const float Thickness /*=1*/)
