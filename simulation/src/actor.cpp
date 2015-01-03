@@ -101,6 +101,24 @@ void Actor::AddTorque(const float InTorque)
     AngularAcceleration += (InTorque * InverseMOI);
 }
 
+void Actor::AddImpulse(const Vector2& InImpulse)
+{
+    LinearVelocity += (InImpulse * InverseMass);
+}
+
+void Actor::AddImpulseAt(const Vector2& InImpulse, const Vector2& Location)
+{
+    AddImpulse(InImpulse);
+    const Vector2 R = Location - GetWorldCOM();
+    const float RotationalImpulse = R.X*InImpulse.Y - R.Y*InImpulse.X;
+    AddRotationalImpulse(RotationalImpulse);
+}
+
+void Actor::AddRotationalImpulse(const float RotationalImpulse)
+{
+    AngularVelocity += (RotationalImpulse * InverseMass);
+}
+
 void Actor::CalculateMass()
 {
     float TotalMass = 0.f;
@@ -110,6 +128,14 @@ void Actor::CalculateMass()
     }
 
     InverseMass = 1.f / TotalMass;
+}
+
+Vector2 Actor::GetLinearVelocityAt(const Vector2& Location) const
+{
+    const Vector2 COMToLocation = (Location - GetWorldCOM());
+    const Vector2 TangentialVelocity = Vector2(-AngularVelocity * COMToLocation.X, AngularVelocity * COMToLocation.Y);
+    const Vector2 TotalVelocity = LinearVelocity + TangentialVelocity;
+    return TotalVelocity;
 }
 
 void Actor::CalculateCOM()

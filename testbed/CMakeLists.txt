@@ -9,7 +9,7 @@ include_directories(${CMAKE_SOURCE_DIR}/simulation)
 include_directories(${CMAKE_SOURCE_DIR}/extern)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-set( TESTBED_SOURCE src/test.cpp src/shapeoverlap.cpp src/renderer.cpp src/forces.cpp)
+set( TESTBED_SOURCE src/test.cpp src/shapeoverlap.cpp src/renderer.cpp src/forces.cpp src/impulses.cpp)
 set( TESTBED_HEADERS test.h renderer.h)
 
 #OpenGL

@@ -28,6 +28,7 @@ public:
     const Vector2& GetLinearVelocity() const { return LinearVelocity; }
     void SetAngularVelocity(const float InAngularVelocity);
     float GetAngularVelocity() const { return AngularVelocity; }
+    Vector2 GetLinearVelocityAt(const Vector2& Location) const;
     void SetLinearAcceleration(const Vector2& InAcceleration);
     const Vector2& GetLinearAcceleration() const { return LinearAcceleration; }
     void SetAngularAcceleration(const float InAcceleration);
@@ -35,6 +36,9 @@ public:
     void AddForce(const Vector2& InForce);
     void AddForceAtLocation(const Vector2& InForce, const Vector2& Location);
     void AddTorque(const float InTorque);
+    void AddImpulse(const Vector2& InImpulse);
+    void AddImpulseAt(const Vector2& InImpulse, const Vector2& Location);
+    void AddRotationalImpulse(const float RotationalImpulse);
 
     /** mass COM inertia, etc... */
     float GetMass() const { return 1.f / InverseMass; }
