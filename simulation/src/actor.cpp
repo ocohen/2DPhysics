@@ -5,6 +5,10 @@ Actor::Actor(World* InWorld)
 : WorldTM(Transform::Identity)
 , MyWorld(InWorld)
 , bIsKinematic(false)
+, LinearAcceleration(Vector2::Zero)
+, LinearVelocity(Vector2::Zero)
+, AngularAcceleration(0.f)
+, AngularVelocity(0.f)
 {
 }
 
@@ -55,4 +59,24 @@ bool Actor::OverlapTest(const Actor* B, std::vector<ShapeOverlap>* Overlaps) con
     }
 
     return bOverlap;
+}
+
+void Actor::SetLinearVelocity(const Vector2& InVelocity)
+{
+    LinearVelocity = InVelocity;
+}
+
+void Actor::SetAngularVelocity(const float InAngularVelocity)
+{
+    AngularVelocity = InAngularVelocity;
+}
+
+void Actor::SetLinearAcceleration(const Vector2& InAcceleration)
+{
+    LinearAcceleration = InAcceleration;
+}
+
+void Actor::SetAngularAcceleration(const float InAcceleration)
+{
+    AngularAcceleration = InAcceleration;
 }

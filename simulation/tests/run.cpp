@@ -65,3 +65,61 @@ TEST_CASE( "World", "[world]" )
     const std::vector<Actor*>& Actors = AWorld.GetAllActors();
     CHECK(Actors.size() == 2);
 }
+
+TEST_CASE( "Integration", "[integration]" )
+{
+
+    const float Dt = 1.f / 60.f;
+    {
+        World AWorld;
+        Actor* Ball = AWorld.CreateActor();
+        Ball->CreateShape<Circle>();
+        //No forces or velocity implies no movement
+        for(int Step = 0; Step < 10; ++Step)
+        {
+            AWorld.Integrate(Dt);
+        }
+
+        const Transform TM = Ball->GetWorldTransform();
+        CHECK(TM.Position.X == Approx(0.f));
+        CHECK(TM.Position.Y == Approx(0.f));
+        CHECK(TM.Rotation == Approx(0.f));
+    }
+
+    {
+        World AWorld;
+        Actor* Ball = AWorld.CreateActor();
+        Ball->CreateShape<Circle>();
+        //Constant velocity with no acceleration implies constant movement
+        Ball->SetLinearVelocity(Vector2(1.f, 2.f));
+        Ball->SetAngularVelocity(1.f);
+        for(int Step = 0; Step < 60; ++Step)
+        {
+            AWorld.Integrate(Dt);
+        }
+
+        const Transform TM = Ball->GetWorldTransform();
+        CHECK(TM.Position.X == Approx(1.f));
+        CHECK(TM.Position.Y == Approx(2.f));
+        CHECK(TM.Rotation == Approx(1.f));
+    }
+
+
+    {
+        World AWorld;
+        Actor* Ball = AWorld.CreateActor();
+        Ball->CreateShape<Circle>();
+        //Constant acceleration with no initial velocity
+        Ball->SetLinearAcceleration(Vector2(1.f, 2.f));
+        Ball->SetAngularAcceleration(1.f);
+        for(int Step = 0; Step < 60; ++Step)
+        {
+            AWorld.Integrate(Dt);
+        }
+
+        const Transform TM = Ball->GetWorldTransform();
+        CHECK(TM.Position.X == Approx(0.5f));
+        CHECK(TM.Position.Y == Approx(1.f));
+        CHECK(TM.Rotation == Approx(0.5f));
+    }
+}

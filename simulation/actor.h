@@ -23,11 +23,26 @@ public:
     const std::vector<SimShape*>& GetShapes() const { return Shapes; }
     bool OverlapTest(const Actor* Other, std::vector<ShapeOverlap>* Overlaps = 0) const;
 
+    /** velocity, acceleration, forces, impulses, etc...*/
+    void SetLinearVelocity(const Vector2& InVelocity);
+    const Vector2& GetLinearVelocity() const { return LinearVelocity; }
+    void SetAngularVelocity(const float InAngularVelocity);
+    float GetAngularVelocity() const { return AngularVelocity; }
+    void SetLinearAcceleration(const Vector2& InAcceleration);
+    const Vector2& GetLinearAcceleration() const { return LinearAcceleration; }
+    void SetAngularAcceleration(const float InAcceleration);
+    float GetAngularAcceleration() const { return AngularAcceleration; }
+
 private:
     Transform WorldTM;
     World* MyWorld;
     bool bIsKinematic;
     std::vector<SimShape*> Shapes;
+    Vector2 LinearAcceleration;
+    Vector2 LinearVelocity;
+    float AngularAcceleration;
+    float AngularVelocity;
+
 };
 
 template <typename T> SimShape* Actor::CreateShape(const Transform& LocalTM)

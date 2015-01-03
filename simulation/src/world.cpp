@@ -64,3 +64,24 @@ void World::GenerateContactManifolds()
         }
     }
 }
+
+void World::Integrate(const float DeltaTime)
+{
+    for(Actor* A : Actors)
+    {
+        //leapfrog integreation: http://en.wikipedia.org/wiki/Leapfrog_integration
+        const float DeltaTime2 = DeltaTime * DeltaTime;
+        const Vector2 Offset = A->GetLinearVelocity() * DeltaTime + 0.5f * A->GetLinearAcceleration() * DeltaTime2;
+        const float AngularOffset = A->GetAngularVelocity() * DeltaTime + 0.5f * A->GetAngularAcceleration() * DeltaTime2;
+
+        const Transform& TM = A->GetWorldTransform();
+        const Transform NewTM = Transform(TM.Position + Offset, TM.Rotation + AngularOffset);
+        A->SetWorldTransform(NewTM);
+
+        const Vector2 NewLinearVelocity = (A->GetLinearAcceleration() * DeltaTime) + A->GetLinearVelocity();
+        const float NewAngularVelocity = (A->GetAngularAcceleration() * DeltaTime) + A->GetAngularVelocity();
+        A->SetLinearVelocity(NewLinearVelocity);
+        A->SetAngularVelocity(NewAngularVelocity);
+
+    }
+}

@@ -13,6 +13,7 @@ public:
     Actor* CreateActor();
     void RemoveActor(Actor* InActor);
     const std::vector<Actor*>& GetAllActors() const { return Actors; }
+    void Integrate(const float DeltaTime);
 
     void GenerateContactManifolds();
     const std::vector<ContactManifold>& GetContactManifolds() const { return ContactManifolds; }
