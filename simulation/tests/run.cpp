@@ -110,10 +110,10 @@ TEST_CASE( "Integration", "[integration]" )
         Actor* Ball = AWorld.CreateActor();
         Ball->CreateShape<Circle>();
         //Constant acceleration with no initial velocity
-        Ball->SetLinearAcceleration(Vector2(1.f, 2.f));
-        Ball->SetAngularAcceleration(1.f);
         for(int Step = 0; Step < 60; ++Step)
         {
+            Ball->SetLinearAcceleration(Vector2(1.f, 2.f));
+            Ball->SetAngularAcceleration(1.f);
             AWorld.Integrate(Dt);
         }
 
@@ -121,5 +121,61 @@ TEST_CASE( "Integration", "[integration]" )
         CHECK(TM.Position.X == Approx(0.5f));
         CHECK(TM.Position.Y == Approx(1.f));
         CHECK(TM.Rotation == Approx(0.5f));
+    }
+}
+
+TEST_CASE( "Forces", "[forces]" )
+{
+
+    const float Dt = 1.f / 60.f;
+    {
+        //make sure forces are applied every frame and then reset to 0
+        World AWorld;
+        Actor* Ball = AWorld.CreateActor();
+        Ball->CreateShape<Circle>();
+
+        Ball->AddForce(Vector2(1,2));
+        const Vector2& LinearAcceleration = Ball->GetLinearAcceleration();
+        CHECK(LinearAcceleration.X == Approx(1.f));
+        CHECK(LinearAcceleration.Y == Approx(2.f));
+        AWorld.Integrate(Dt);
+        CHECK(LinearAcceleration.X == Approx(0.f));
+        CHECK(LinearAcceleration.Y == Approx(0.f));
+    }
+
+    {
+        //properly convert force into acceleration with multiple shapes
+        World AWorld;
+        Actor* Ball = AWorld.CreateActor();
+        SimShape* Circ1 = Ball->CreateShape<Circle>();
+        Circ1->SetMass(10.f);
+        SimShape* Circ2 = Ball->CreateShape<Circle>();
+        Circ2->SetMass(2.f);
+        Ball->UpdateMassAndInertia();
+        CHECK(Ball->GetMass() == Approx(12.f));
+        Ball->AddForce(Vector2(1,2));
+        const Vector2& LinearAcceleration = Ball->GetLinearAcceleration();
+        CHECK(LinearAcceleration.X == Approx(1.f / 12.f));
+        CHECK(LinearAcceleration.Y == Approx(2.f / 12.f));
+    }
+
+    {
+        //properly convert torque into acceleration with multiple shapes
+        World AWorld;
+        Actor* Obj = AWorld.CreateActor();
+        SimShape* Circ1 = Obj->CreateShape<Circle>(Transform(Vector2(1,0)));
+        Circ1->SetMass(1.f);
+        Circ1->SetMomentOfInertia(1.f);
+        SimShape* Circ2 = Obj->CreateShape<Circle>(Transform(Vector2(-1,0)));
+        Circ2->SetMass(2.f);
+        Circ2->SetMomentOfInertia(3.f);
+        Obj->UpdateMassAndInertia();
+        const Vector2& COM = Obj->GetWorldTransform().TransformPosition(Obj->GetLocalCOM());
+        CHECK(COM.X == Approx( -1.f / 3 ));
+        CHECK(COM.Y == Approx( 0.f ));
+        const float MOI = Obj->GetMomentOfInertia();
+        CHECK(MOI == Approx(6.666666667f));
+        Obj->AddTorque(6.666666667f);
+        CHECK(Obj->GetAngularAcceleration() == Approx(1.f));
     }
 }

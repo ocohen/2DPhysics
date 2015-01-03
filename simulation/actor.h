@@ -32,6 +32,14 @@ public:
     const Vector2& GetLinearAcceleration() const { return LinearAcceleration; }
     void SetAngularAcceleration(const float InAcceleration);
     float GetAngularAcceleration() const { return AngularAcceleration; }
+    void AddForce(const Vector2& InForce);
+    void AddTorque(const float InTorque);
+
+    /** mass COM inertia, etc... */
+    float GetMass() const { return 1.f / InverseMass; }
+    float GetMomentOfInertia() const { return 1.f / InverseMOI; }
+    void UpdateMassAndInertia();
+    const Vector2& GetLocalCOM() const { return LocalCOM; }
 
 private:
     Transform WorldTM;
@@ -40,8 +48,11 @@ private:
     std::vector<SimShape*> Shapes;
     Vector2 LinearAcceleration;
     Vector2 LinearVelocity;
+    Vector2 LocalCOM;
     float AngularAcceleration;
     float AngularVelocity;
+    float InverseMass;
+    float InverseMOI;
 
 };
 
@@ -51,6 +62,7 @@ template <typename T> SimShape* Actor::CreateShape(const Transform& LocalTM)
     SimShape* NewSimShape = new SimShape(NewShape);
     NewSimShape->LocalTM = LocalTM;
     Shapes.push_back(NewSimShape);
+    UpdateMassAndInertia();
     return NewSimShape;
 }
 
@@ -60,6 +72,7 @@ template <typename T> SimShape* Actor::CreateShape(const T& InGeometry, const Tr
     SimShape* NewSimShape = new SimShape(NewShape);
     NewSimShape->LocalTM = LocalTM;
     Shapes.push_back(NewSimShape);
+    UpdateMassAndInertia();
     return NewSimShape;
 }
 

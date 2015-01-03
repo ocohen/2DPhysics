@@ -1,7 +1,8 @@
 #include "simshape.h"
 
 SimShape::SimShape(BaseShape* InGeometry)
-: Geometry(InGeometry)
+: LocalCOM(Vector2::Zero)
+, Geometry(InGeometry)
 , Mass(1.f)
 {
 }
@@ -14,4 +15,9 @@ SimShape::~SimShape()
 void SimShape::SetMass(const float InMass)
 {
     Mass = InMass;
+}
+
+void SimShape::SetMomentOfInertia(const float InMOI)
+{
+    MOI = InMOI;
 }

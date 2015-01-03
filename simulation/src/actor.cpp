@@ -9,6 +9,7 @@ Actor::Actor(World* InWorld)
 , LinearVelocity(Vector2::Zero)
 , AngularAcceleration(0.f)
 , AngularVelocity(0.f)
+, InverseMass(1.f)
 {
 }
 
@@ -79,4 +80,41 @@ void Actor::SetLinearAcceleration(const Vector2& InAcceleration)
 void Actor::SetAngularAcceleration(const float InAcceleration)
 {
     AngularAcceleration = InAcceleration;
+}
+
+void Actor::AddForce(const Vector2& InForce)
+{
+    LinearAcceleration += (InForce * InverseMass);
+}
+
+void Actor::AddTorque(const float InTorque)
+{
+    AngularAcceleration += (InTorque * InverseMOI);
+}
+
+void Actor::UpdateMassAndInertia()
+{
+    float TotalMass = 0.f;
+    Vector2 TotalCOMs = Vector2::Zero;
+    for(SimShape* Shape : Shapes)
+    {
+        TotalMass += Shape->GetMass();
+        TotalCOMs += Shape->GetMass() * Shape->LocalTM.TransformPosition(Shape->GetLocalCOM());
+    }
+
+    InverseMass = 1.f / TotalMass;
+    LocalCOM = TotalCOMs * InverseMass;
+
+    float TotalMOI = 0.f;
+    for(SimShape* Shape : Shapes)
+    {
+        //use parallel axis theorem to compute shape's MOI if the COM was the same as the actor's COM
+        const Vector2 ShapeCOM = Shape->LocalTM.TransformPosition(Shape->GetLocalCOM());
+        const float Distance2 = (LocalCOM - ShapeCOM).Length2();
+        const float ParallelMOI = Shape->GetMomentOfInertia() + (Shape->GetMass() * Distance2);
+        TotalMOI += ParallelMOI;
+    }
+
+    InverseMOI = 1.f / TotalMOI;
+
 }

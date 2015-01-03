@@ -83,5 +83,9 @@ void World::Integrate(const float DeltaTime)
         A->SetLinearVelocity(NewLinearVelocity);
         A->SetAngularVelocity(NewAngularVelocity);
 
+        //reset acceleration for upcoming frame
+        A->SetLinearAcceleration(Vector2::Zero);
+        A->SetAngularAcceleration(0.f);
+
     }
 }
