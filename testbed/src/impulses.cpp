@@ -5,6 +5,7 @@
 #include "circle.h"
 #include "rectangle.h"
 #include "renderer.h"
+#include "solver.h"
 
 class ImpulsesTest : public Test
 {
@@ -23,18 +24,37 @@ public:
             Damping = atof(Argv[3]);
         }
 
-        Circle DefCircle(1.f);
-        {
-            Actor* AnActor = AWorld.CreateActor();
-            AnActor->CreateShape<Circle>(DefCircle);
-        }
+        Circle DefCircle(.3f);
 
         {
-            Actor* AnActor = AWorld.CreateActor();
-            AnActor->CreateShape<Circle>(DefCircle);
-            AnActor->SetWorldTransform(Vector2(0.5f, -3.f));
+            float X = -4;
+            float Y = 0;
+            for(int i=0; i<43; ++i)
+            {
+                X += 0.7;
+                if(X > 4)
+                {
+                    X = -4;
+                    Y += 0.7f;
+                }
+                Actor* AnActor = AWorld.CreateActor();
+                AnActor->CreateShape<Circle>(DefCircle);
+                AnActor->SetWorldTransform(Vector2(X,Y));
+                AnActor->SetRestitution(0.5f);
+            }
         }
-        
+
+        Rectangle DefArm(Vector2(3.f,.1f));
+        {
+            Actor* AnActor = AWorld.CreateActor();
+            AnActor->CreateShape<Rectangle>(DefArm);
+            AnActor->CalculateMassInertiaAndCOM();
+            AnActor->SetWorldTransform(Transform(Vector2(0.f,-2.f)));
+            AnActor->SetKinematic(true);
+            AnActor->SetRestitution(1.f);
+            AnActor->SetAngularVelocity(PI*0.25f);
+        }
+
         Rectangle DefFloor(Vector2(10.f,.1f));
         {
             Actor* AnActor = AWorld.CreateActor();
@@ -42,6 +62,34 @@ public:
             AnActor->CalculateMassInertiaAndCOM();
             AnActor->SetWorldTransform(Transform(Vector2(0.f,-5)));
             AnActor->SetKinematic(true);
+            AnActor->SetRestitution(1.f);
+        }
+
+        {
+            Actor* AnActor = AWorld.CreateActor();
+            AnActor->CreateShape<Rectangle>(DefFloor);
+            AnActor->CalculateMassInertiaAndCOM();
+            AnActor->SetWorldTransform(Transform(Vector2(0.f,5)));
+            AnActor->SetKinematic(true);
+            AnActor->SetRestitution(1.f);
+        }
+
+        {
+            Actor* AnActor = AWorld.CreateActor();
+            AnActor->CreateShape<Rectangle>(DefFloor);
+            AnActor->CalculateMassInertiaAndCOM();
+            AnActor->SetWorldTransform(Transform(Vector2(5.f, 0.f), PI*0.5));
+            AnActor->SetKinematic(true);
+            AnActor->SetRestitution(1.f);
+        }
+
+        {
+            Actor* AnActor = AWorld.CreateActor();
+            AnActor->CreateShape<Rectangle>(DefFloor);
+            AnActor->CalculateMassInertiaAndCOM();
+            AnActor->SetWorldTransform(Transform(Vector2(-5.f, 0.f), PI*0.5));
+            AnActor->SetKinematic(true);
+            AnActor->SetRestitution(1.f);
         }
 
 
@@ -63,37 +111,8 @@ public:
         AWorld.Integrate(DeltaTime);
         AWorld.GenerateContactManifolds();
         const std::vector<ContactManifold>& Manifolds = AWorld.GetContactManifolds();
-
-        for(const ContactManifold& Manifold : Manifolds)
-        {
-            for(int ContactIdx = 0; ContactIdx < Manifold.NumContacts; ++ContactIdx)
-            {
-                Actor* A = Manifold.A;
-                Actor* B = Manifold.B;
-                const Contact& AContact = Manifold.ContactPoints[ContactIdx];
-
-                //Apply impulse based on penetration depth and normal
-
-                const Vector2 RelativeVelocity = B->GetLinearVelocityAt(AContact.Position) - A->GetLinearVelocityAt(AContact.Position);
-                const float RelativeSpeedAlongNormal = Vector2::Dot(RelativeVelocity, AContact.Normal);
-
-                if(RelativeSpeedAlongNormal < 0)    //only apply impulse of not separating
-                {
-                    Vector2 Impulse = -(1.f + 0.5f) * RelativeSpeedAlongNormal * AContact.Normal;
-                    Impulse /= (A->IsKinematic() ? 0.f : 1.f/A->GetMass()) + (B->IsKinematic() ? 0.f : 1.f/B->GetMass());
-
-                    if(A->IsKinematic() == false)
-                    {
-                        A->AddImpulseAt(-Impulse, AContact.Position);
-                    }
-                    if(B->IsKinematic() == false)
-                    {
-                        B->AddImpulseAt(Impulse, AContact.Position);
-                    }
-                }
-
-            }
-        }
+        Solver ASolver;
+        ASolver.Solve(Manifolds);
 
         for(const Actor* AnActor : Actors)
         {

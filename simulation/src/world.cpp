@@ -47,6 +47,11 @@ void World::GenerateContactManifolds()
         for(size_t BIdx = AIdx + 1, NumActors = Actors.size(); BIdx < NumActors; ++BIdx)
         {
            Actor* B = Actors[BIdx];
+           if(A->IsKinematic() && B->IsKinematic())
+           {
+               continue;
+           }
+
            std::vector<ShapeOverlap> Overlaps;
            if(A->OverlapTest(B, &Overlaps))
            {

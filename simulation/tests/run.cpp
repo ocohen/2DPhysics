@@ -5,6 +5,7 @@
 #include "actor.h"
 #include "circle.h"
 #include "rectangle.h"
+#include "solver.h"
 
 TEST_CASE( "Actor", "[actor]" )
 {
@@ -64,6 +65,62 @@ TEST_CASE( "World", "[world]" )
 
     const std::vector<Actor*>& Actors = AWorld.GetAllActors();
     CHECK(Actors.size() == 2);
+}
+
+TEST_CASE( "Impulses", "[impulses]" )
+{
+    {
+        //check linear velocity at
+        World AWorld;
+        Actor* Obj = AWorld.CreateActor();
+        Rectangle Rect(Vector2(2.f, 1.f));
+        Obj->CreateShape<Rectangle>(Rect);
+        Obj->SetAngularVelocity(1.f);
+
+        {
+            const Vector2 VelAt0 = Obj->GetLinearVelocityAt(Vector2::Zero);
+            CHECK(VelAt0.X == Approx(0.f));
+            CHECK(VelAt0.Y == Approx(0.f));
+
+            const Vector2 VelAtLeft = Obj->GetLinearVelocityAt(Vector2(-2.f, 0.f));
+            CHECK(VelAtLeft.X == Approx(0.f));
+            CHECK(VelAtLeft.Y == Approx(-2.f));
+        }
+
+        Obj->SetLinearVelocity(Vector2(1.f, 1.f));
+        {
+
+            const Vector2 VelAt0 = Obj->GetLinearVelocityAt(Vector2::Zero);
+            CHECK(VelAt0.X == Approx(1.f));
+            CHECK(VelAt0.Y == Approx(1.f));
+
+            const Vector2 VelAtLeft = Obj->GetLinearVelocityAt(Vector2(-2.f, 0.f));
+            CHECK(VelAtLeft.X == Approx(1.f));
+            CHECK(VelAtLeft.Y == Approx(-1.f));
+        }
+    }
+
+    {
+        World AWorld;
+        Actor* Obj = AWorld.CreateActor();
+        Rectangle DefRectangle(Vector2(2.f, 1.f));
+        SimShape* Rect = Obj->CreateShape<Rectangle>(DefRectangle);
+        Rect->SetMass(2.f);
+        Rect->SetMomentOfInertia(3.f);
+        Obj->CalculateMassInertiaAndCOM();
+
+        Obj->AddImpulse(Vector2(1.f, 1.f));
+
+        CHECK(Obj->GetLinearVelocity().X == Approx(0.5f));
+        CHECK(Obj->GetLinearVelocity().Y == Approx(0.5f));
+
+        Obj->AddImpulseAt(Vector2(0.f, 1.f), Vector2(2.f, 0.f));
+
+        CHECK(Obj->GetLinearVelocity().X == Approx(0.5f));
+        CHECK(Obj->GetLinearVelocity().Y == Approx(1.f));
+
+        CHECK(Obj->GetAngularVelocity() == Approx(2/3.f));
+    }
 }
 
 TEST_CASE( "Integration", "[integration]" )
@@ -143,7 +200,146 @@ TEST_CASE( "Integration", "[integration]" )
         CHECK(TM.Position.Y == Approx(-1.f));
         CHECK(TM.Rotation == Approx(0.5f * PI));
     }
+}
 
+TEST_CASE( "Simulation", "[simulation]" )
+{
+    const float Dt = 1.f / 60.f;
+    Solver ASolver;
+    {
+        //two circles of radius 1 at 0,0 and 1, 0
+        World AWorld;
+        Actor* A = AWorld.CreateActor();
+        SimShape* AShape = A->CreateShape<Circle>();
+
+        Actor* B = AWorld.CreateActor();
+        B->CreateShape<Circle>();
+        B->SetWorldTransform(Transform(Vector2(1.f, 0.f)));
+
+        std::vector<ContactManifold> Manifolds;
+        ContactManifold M;
+        M.A = A;
+        M.B = B;
+        M.NumContacts = 1;
+        M.ContactPoints[0].Position = Vector2::Zero;
+        M.ContactPoints[0].Normal = Vector2(1.f, 0.f);
+        M.ContactPoints[0].PenetrationDepth = 1.f;
+        Manifolds.push_back(M);
+
+        {
+            ASolver.Solve(Manifolds);
+
+            const Transform& ATM = A->GetWorldTransform();
+            const Transform& BTM = B->GetWorldTransform();
+            CHECK(ATM.Position.X == Approx(-0.5f));
+            CHECK(ATM.Position.Y == Approx(0.f));
+            CHECK(BTM.Position.X == Approx(1.5f));
+            CHECK(BTM.Position.Y == Approx(0.f));
+        }
+
+        {
+            A->SetWorldPosition(Vector2::Zero);
+            B->SetWorldPosition(Vector2(1.f,0));
+            //now make one actor bigger, make sure the seperation is proportionate
+            AShape->SetMass(2.f);
+            A->CalculateMassInertiaAndCOM();
+            ASolver.Solve(Manifolds);
+
+            const Transform& ATM = A->GetWorldTransform();
+            const Transform& BTM = B->GetWorldTransform();
+            CHECK(ATM.Position.X == Approx(-0.33333f));
+            CHECK(ATM.Position.Y == Approx(0.f));
+            CHECK(BTM.Position.X == Approx(1.66666f));
+            CHECK(BTM.Position.Y == Approx(0.f));
+        }
+
+        {
+            //now make one actor kinematic and make sure it doesn't move
+            A->SetWorldPosition(Vector2::Zero);
+            B->SetWorldPosition(Vector2(1.f,0));
+            B->SetKinematic(true);
+            ASolver.Solve(Manifolds);
+
+            const Transform& ATM = A->GetWorldTransform();
+            const Transform& BTM = B->GetWorldTransform();
+            CHECK(ATM.Position.X == Approx(-1.f));
+            CHECK(ATM.Position.Y == Approx(0.f));
+            CHECK(BTM.Position.X == Approx(1.f));
+            CHECK(BTM.Position.Y == Approx(0.f));
+        }
+
+        {
+            //now make A moving and since restitution is 0 the velocity should be completely gone on x axis
+            A->SetWorldPosition(Vector2::Zero);
+            B->SetWorldPosition(Vector2(1.f,0));
+            A->SetLinearVelocity(Vector2::Zero);
+            B->SetLinearVelocity(Vector2::Zero);
+
+            A->SetLinearVelocity(Vector2(1.f, 1.f));
+            A->SetRestitution(0.f);
+            B->SetRestitution(1.f);
+            ASolver.Solve(Manifolds);
+
+            CHECK(A->GetLinearVelocity().X == 0.f);
+            CHECK(A->GetLinearVelocity().Y == 1.f);
+            CHECK(B->GetLinearVelocity().X == 0.f);
+            CHECK(B->GetLinearVelocity().Y == 0.f);
+        }
+
+        {
+            //now make A moving and since restitution is 1 the velocity should be completely negated on x axis
+            A->SetWorldPosition(Vector2::Zero);
+            B->SetWorldPosition(Vector2(1.f,0));
+            A->SetLinearVelocity(Vector2::Zero);
+            B->SetLinearVelocity(Vector2::Zero);
+
+            A->SetLinearVelocity(Vector2(1.f, 1.f));
+            A->SetRestitution(1.f);
+            B->SetRestitution(1.f);
+            ASolver.Solve(Manifolds);
+
+            CHECK(A->GetLinearVelocity().X == -1.f);
+            CHECK(A->GetLinearVelocity().Y == 1.f);
+            CHECK(B->GetLinearVelocity().X == 0.f);
+            CHECK(B->GetLinearVelocity().Y == 0.f);
+        }
+
+        {
+            //now make A moving and B simulated. Both with restitution 0 so A and B should move together
+            A->SetWorldPosition(Vector2::Zero);
+            B->SetWorldPosition(Vector2(1.f,0));
+            A->SetLinearVelocity(Vector2::Zero);
+            B->SetLinearVelocity(Vector2::Zero);
+            B->SetKinematic(false);
+
+            A->SetLinearVelocity(Vector2(1.f, 0.f));
+            A->SetRestitution(0.f);
+            B->SetRestitution(0.f);
+            ASolver.Solve(Manifolds);
+
+            CHECK(A->GetLinearVelocity().X == Approx(0.6666666f));
+            CHECK(A->GetLinearVelocity().Y == 0.f);
+            CHECK(B->GetLinearVelocity().X == Approx(0.6666666f));
+            CHECK(B->GetLinearVelocity().Y == 0.f);
+        }
+        /*
+
+        {
+            //now make A moving and since restitution is 1 the velocity should become negative + penetration
+            A->SetLinearVelocity(Vector2(1.f, 1.f));
+            A->SetRestitution(1.f);
+            B->SetLinearVelocity(Vector2::Zero);
+            B->SetRestitution(1.f);
+            ASolver.Solve(Manifolds);
+
+            CHECK(A->GetLinearVelocity().X == Approx(-1 -0.25f / Dt));
+            CHECK(A->GetLinearVelocity().Y == 1.f);
+            CHECK(B->GetLinearVelocity().X == 0.f);
+            CHECK(B->GetLinearVelocity().Y == 0.f);
+        }
+
+        */
+    }
 }
 
 TEST_CASE( "Forces", "[forces]" )

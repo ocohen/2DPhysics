@@ -11,6 +11,7 @@ Actor::Actor(World* InWorld)
 , AngularAcceleration(0.f)
 , AngularVelocity(0.f)
 , InverseMass(1.f)
+, Restitution(0.f)
 {
 }
 
@@ -23,6 +24,16 @@ void Actor::SetKinematic(bool IsKinematic)
 void Actor::SetWorldTransform(const Transform& InTransform)
 {
     WorldTM = InTransform;
+}
+
+void Actor::SetWorldPosition(const Vector2& InPosition)
+{
+    WorldTM.Position = InPosition;
+}
+
+void Actor::SetWorldRotation(const float InRotation)
+{
+    WorldTM.Rotation = InRotation;
 }
 
 Actor::~Actor()
@@ -116,7 +127,7 @@ void Actor::AddImpulseAt(const Vector2& InImpulse, const Vector2& Location)
 
 void Actor::AddRotationalImpulse(const float RotationalImpulse)
 {
-    AngularVelocity += (RotationalImpulse * InverseMass);
+    AngularVelocity += (RotationalImpulse * InverseMOI);
 }
 
 void Actor::CalculateMass()
@@ -133,7 +144,7 @@ void Actor::CalculateMass()
 Vector2 Actor::GetLinearVelocityAt(const Vector2& Location) const
 {
     const Vector2 COMToLocation = (Location - GetWorldCOM());
-    const Vector2 TangentialVelocity = Vector2(-AngularVelocity * COMToLocation.X, AngularVelocity * COMToLocation.Y);
+    const Vector2 TangentialVelocity = Vector2(-AngularVelocity * COMToLocation.Y, AngularVelocity * COMToLocation.X);
     const Vector2 TotalVelocity = LinearVelocity + TangentialVelocity;
     return TotalVelocity;
 }

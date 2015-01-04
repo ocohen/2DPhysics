@@ -16,8 +16,14 @@ public:
     void SetKinematic(bool IsKinematic);
     bool IsKinematic() const { return bIsKinematic; }
     World* GetWorld() const { return MyWorld; }
+
     void SetWorldTransform(const Transform& InTransform);
     const Transform& GetWorldTransform() const { return WorldTM; }
+    void SetWorldPosition(const Vector2& InPosition);
+    const Vector2& GetWorldPosition() const { return WorldTM.Position; }
+    void SetWorldRotation(const float InRotation);
+    float GetWorldRotation() const { return WorldTM.Rotation; }
+
     template <typename T> SimShape* CreateShape(const Transform& LocalTM = Transform::Identity);
     template <typename T> SimShape* CreateShape(const T& InGeometry, const Transform& LocalTM = Transform::Identity);
     const std::vector<SimShape*>& GetShapes() const { return Shapes; }
@@ -42,7 +48,9 @@ public:
 
     /** mass COM inertia, etc... */
     float GetMass() const { return 1.f / InverseMass; }
+    float GetInverseMass() const { return bIsKinematic ? 0.f : InverseMass; }
     float GetMomentOfInertia() const { return 1.f / InverseMOI; }
+    float GetInverseMomentOfInertia() const { return bIsKinematic ? 0.f : InverseMOI; }
     void CalculateMassAndInertia();
     void CalculateMassInertiaAndCOM();
     void CalculateCOM();
@@ -50,6 +58,10 @@ public:
     void CalculateInertia();
     const Vector2& GetLocalCOM() const { return LocalCOM; }
     Vector2 GetWorldCOM() const { return WorldTM.TransformPosition(LocalCOM); }
+
+    /** physical materials. @TODO: move this into a different struct*/
+    float GetRestitution() const { return Restitution; }
+    void SetRestitution(const float InRestitution) { Restitution = InRestitution; }
 
 private:
     Transform WorldTM;
@@ -63,6 +75,7 @@ private:
     float AngularVelocity;
     float InverseMass;
     float InverseMOI;
+    float Restitution;
 
 };
 
