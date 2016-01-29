@@ -39,12 +39,9 @@ int main(int argc, const char ** argv)
     }
     
     SDL_Window* displayWindow;
-    SDL_Renderer* displayRenderer;
-    SDL_RendererInfo displayRendererInfo;
-    
     SDL_Init(SDL_INIT_VIDEO);
-    SDL_CreateWindowAndRenderer(800, 600, SDL_WINDOW_OPENGL, &displayWindow, &displayRenderer);
-    SDL_GetRendererInfo(displayRenderer, &displayRendererInfo);
+    displayWindow = SDL_CreateWindow("Testbed", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    SDL_GL_CreateContext(displayWindow);
     
     Renderer ARenderer(800,600);
 
@@ -80,8 +77,8 @@ int main(int argc, const char ** argv)
                 run &= search->second->Tick(ARenderer, (float)delta);
                 ARenderer.Flush();
             }
-            
-            SDL_RenderPresent(displayRenderer);
+
+            SDL_GL_SwapWindow(displayWindow);
             SDL_Delay(delta);
         }
     }
