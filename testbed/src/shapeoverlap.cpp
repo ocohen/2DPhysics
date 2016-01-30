@@ -2,37 +2,37 @@
 #include "transform.h"
 #include "world.h"
 #include "actor.h"
-#include "circle.h"
-#include "rectangle.h"
+#include "CircleShape.h"
+#include "RectangleShape.h"
 #include "renderer.h"
 
 class ShapeOverlapTest : public Test
 {
 public:
-    bool Init(int, const char**)
+    bool Init(int, char**)
     {
-        Circle DefCircle(1.f);
-        Rectangle DefRectangle(Vector2(1.f,2.f));
+        CircleShape DefCircleShape(1.f);
+        RectangleShape DefRectangleShape(Vector2(1.f,2.f));
         {
             Actor* AnActor = AWorld.CreateActor();
             AnActor->SetWorldTransform(Transform(Vector2(-2,1), PI*.5));
-            AnActor->CreateShape<Circle>(DefCircle);
-            AnActor->CreateShape<Rectangle>(DefRectangle, Transform(Vector2(2.f,0.f)));
-            AnActor->CreateShape<Circle>(DefCircle, Transform(Vector2(4.f,0.f)));
+            AnActor->CreateShape<CircleShape>(DefCircleShape);
+            AnActor->CreateShape<RectangleShape>(DefRectangleShape, Transform(Vector2(2.f,0.f)));
+            AnActor->CreateShape<CircleShape>(DefCircleShape, Transform(Vector2(4.f,0.f)));
         }
 
         {
             Actor* AnActor = AWorld.CreateActor();
             AnActor->SetWorldTransform(Transform(Vector2(3,1)));
-            AnActor->CreateShape<Circle>(DefCircle);
-            AnActor->CreateShape<Rectangle>(DefRectangle, Transform(Vector2(-2.f,0.f)));
+            AnActor->CreateShape<CircleShape>(DefCircleShape);
+            AnActor->CreateShape<RectangleShape>(DefRectangleShape, Transform(Vector2(-2.f,0.f)));
         }
 
         {
             Actor* AnActor = AWorld.CreateActor();
             AnActor->SetWorldTransform(Transform(Vector2(-5,2)));
-            AnActor->CreateShape<Circle>(DefCircle);
-            AnActor->CreateShape<Rectangle>(DefRectangle, Transform(Vector2(-2.f,2.f)));
+            AnActor->CreateShape<CircleShape>(DefCircleShape);
+            AnActor->CreateShape<RectangleShape>(DefRectangleShape, Transform(Vector2(-2.f,2.f)));
         }
 
         return true;
@@ -45,7 +45,7 @@ public:
         const std::vector<Actor*>& Actors = AWorld.GetAllActors();
 
         static float Rad = 1.95f;
-        Rad += DeltaTime * 0.5;
+        Rad += DeltaTime * 0.5f;
 
         for(Actor* AnActor : Actors)
         {

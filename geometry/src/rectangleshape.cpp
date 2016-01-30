@@ -1,24 +1,24 @@
-#include "rectangle.h"
+#include "RectangleShape.h"
 
-Rectangle::Rectangle() : ConvexPolygon(Shape::Rectangle)
+RectangleShape::RectangleShape() : ConvexPolygon(Shape::Rectangle)
 {
     UpdateVertices();
 }
 
-Rectangle::Rectangle(const Vector2& InExtents)
+RectangleShape::RectangleShape(const Vector2& InExtents)
 : ConvexPolygon(Shape::Rectangle)
 ,Extents(InExtents)
 {
     UpdateVertices();
 }
 
-void Rectangle::SetExtents(const Vector2& InExtents)
+void RectangleShape::SetExtents(const Vector2& InExtents)
 {
     Extents = InExtents;
     UpdateVertices();
 }
 
-void Rectangle::UpdateVertices()
+void RectangleShape::UpdateVertices()
 {
     ClearVertices();
     AddVertex(Vector2(Extents.X, -Extents.Y));
@@ -27,7 +27,7 @@ void Rectangle::UpdateVertices()
     AddVertex(-Extents);
 }
 
-void Rectangle::GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& TM) const
+void RectangleShape::GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& TM) const
 {
     const Vector2 TopRight    = TM.TransformPosition(Extents);
     const Vector2 BottomRight = TM.TransformPosition(Vector2(Extents.X, -Extents.Y));
@@ -41,4 +41,4 @@ void Rectangle::GenerateRenderVertices(std::vector<Vector2>& OutVertices, const 
     OutVertices.push_back(BottomRight);
 
 }
-Shape::Type Rectangle::ShapeType = Shape::Rectangle;
+Shape::Type RectangleShape::ShapeType = Shape::Rectangle;

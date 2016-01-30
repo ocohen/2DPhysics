@@ -1,6 +1,6 @@
 #include "baseshape.h"
-#include "circle.h"
-#include "rectangle.h"
+#include "CircleShape.h"
+#include "RectangleShape.h"
 #include "shapeoverlap.h"
 #include "contactmanifold.h"
 #include <cassert>
@@ -11,7 +11,7 @@ BaseShape::BaseShape(const Shape::Type InType)
 }
 
 
-bool CircleCircleOverlapTest(const Circle& A, const Transform& ATM, const Circle& B, const Transform& BTM, ShapeOverlap* Overlap)
+bool CircleShapeCircleShapeOverlapTest(const CircleShape& A, const Transform& ATM, const CircleShape& B, const Transform& BTM, ShapeOverlap* Overlap)
 {
     const Vector2 AToB = BTM.Position - ATM.Position;
     const float Distance2 = AToB.Length2();
@@ -107,9 +107,9 @@ Vector2 AABBClosestPointOnBorder(const Vector2& Min, const Vector2& Max, const V
 }
 
 template <bool FlipAB = false>
-bool RectangleCircleOverlapTest(const Rectangle& Rect, const Transform& RectTM, const Circle& Circ, const Transform& CircTM, ShapeOverlap* OverlapResult)
+bool RectangleShapeCircleShapeOverlapTest(const RectangleShape& Rect, const Transform& RectTM, const CircleShape& Circ, const Transform& CircTM, ShapeOverlap* OverlapResult)
 {
-    //we convert the circle into the rectangle's local space. This allows for a cheap AABB distance check
+    //we convert the CircleShape into the RectangleShape's local space. This allows for a cheap AABB distance check
     const Transform RectInv = RectTM.GetInverse();
     const Vector2 LocalOffset = CircTM.Position - RectTM.Position;
     const Vector2 CircLocalP = RectInv.TransformVector(LocalOffset);
@@ -128,7 +128,7 @@ bool RectangleCircleOverlapTest(const Rectangle& Rect, const Transform& RectTM, 
         OverlapResult->PenetrationDepth = bFlipMTD ? Circ.Radius + sqrtf(Distance2) : Circ.Radius - sqrtf(Distance2);
 
         if(FlipAB)
-        {   //This is to account for when the circle is actually A and the rectangle is actually B
+        {   //This is to account for when the CircleShape is actually A and the RectangleShape is actually B
             OverlapResult->MTD *= -1;
         }
     }
@@ -151,28 +151,30 @@ bool BaseShape::OverlapTest(const BaseShape&A, const Transform& ATM, const BaseS
 
     if(AType == BType && AType == Shape::Circle)
     {
-        return CircleCircleOverlapTest(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM, Overlap);
+        return CircleShapeCircleShapeOverlapTest(*A.Get<CircleShape>(), ATM, *B.Get<CircleShape>(), BTM, Overlap);
     }
 
     if(AType == BType && (AType == Shape::Rectangle))
     {
-        return ConvexConvexOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM, Overlap);
+        return ConvexConvexOverlapTest(*A.Get<RectangleShape>(), ATM, *B.Get<RectangleShape>(), BTM, Overlap);
     }
 
     if(AType == Shape::Circle && BType == Shape::Rectangle)
     {
-        return RectangleCircleOverlapTest<true>(*B.Get<Rectangle>(), BTM, *A.Get<Circle>(), ATM, Overlap);
+        return RectangleShapeCircleShapeOverlapTest<true>(*B.Get<RectangleShape>(), BTM, *A.Get<CircleShape>(), ATM, Overlap);
     }
 
     if(BType == Shape::Circle && AType == Shape::Rectangle)
     {
-        return RectangleCircleOverlapTest(*A.Get<Rectangle>(), ATM, *B.Get<Circle>(), BTM, Overlap);
+        return RectangleShapeCircleShapeOverlapTest(*A.Get<RectangleShape>(), ATM, *B.Get<CircleShape>(), BTM, Overlap);
     }
     
     assert(false && "Unsupported overlap test between two shapes");
+
+	return false;
 }
 
-void GenerateCircleCircleManifold(const Circle&,const Transform&, const Circle& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, ContactManifold& ManifoldOut)
+void GenerateCircleShapeCircleShapeManifold(const CircleShape&,const Transform&, const CircleShape& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, ContactManifold& ManifoldOut)
 {
     ManifoldOut.NumContacts = 1;
     Contact& ConctactPoint = ManifoldOut.ContactPoints[0];
@@ -290,7 +292,7 @@ void GenerateConvexConvexManifold(const ConvexPolygon& A,const Transform& ATM, c
 }
 
 template<bool FlipAB = false>
-void GenerateConvexCircleManifold(const ConvexPolygon&, const Transform&, const Circle& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, ContactManifold& OutManifold)
+void GenerateConvexCircleShapeManifold(const ConvexPolygon&, const Transform&, const CircleShape& B, const Transform& BTM, const Vector2& MTD, const float PenetrationDepth, ContactManifold& OutManifold)
 {
     OutManifold.NumContacts = 1;
     Contact& ContactPoint = OutManifold.ContactPoints[0];
@@ -318,25 +320,25 @@ void BaseShape::GenerateManifold(const ShapeOverlap& Overlap, ContactManifold& O
 
     if(AType == BType && AType == Shape::Circle)
     {
-        GenerateCircleCircleManifold(*A.Get<Circle>(), ATM, *B.Get<Circle>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
+        GenerateCircleShapeCircleShapeManifold(*A.Get<CircleShape>(), ATM, *B.Get<CircleShape>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
         return;
     }
 
     if(AType == BType && (AType == Shape::Rectangle))
     {
-        GenerateConvexConvexManifold(*A.Get<Rectangle>(), ATM, *B.Get<Rectangle>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
+        GenerateConvexConvexManifold(*A.Get<RectangleShape>(), ATM, *B.Get<RectangleShape>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
         return;
     }
 
     if(AType == Shape::Rectangle && BType == Shape::Circle)
     {
-        GenerateConvexCircleManifold(*A.Get<Rectangle>(), ATM, *B.Get<Circle>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
+        GenerateConvexCircleShapeManifold(*A.Get<RectangleShape>(), ATM, *B.Get<CircleShape>(), BTM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
         return;
     }
 
     if(AType == Shape::Circle && BType == Shape::Rectangle)
     {
-        GenerateConvexCircleManifold<true>(*B.Get<Rectangle>(), BTM, *A.Get<Circle>(), ATM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
+        GenerateConvexCircleShapeManifold<true>(*B.Get<RectangleShape>(), BTM, *A.Get<CircleShape>(), ATM, Overlap.MTD, Overlap.PenetrationDepth, OutManifold);
         return;
     }
 

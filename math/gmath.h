@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <limits>
 
-const float SMALL_NUMBER = 1e-4;
-const float PI = 3.141592653589793238;
+const float SMALL_NUMBER = 1e-4f;
+const float PI = 3.141592653589793238f;
 
 template <typename T> T Abs(T Val)
 {

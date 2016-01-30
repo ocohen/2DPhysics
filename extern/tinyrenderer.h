@@ -2,6 +2,10 @@
 #define TINY_RENDERER_H
 #include <cmath>
 
+#if WITH_WINDOWS
+#include <windows.h>
+#endif
+
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #else
@@ -27,7 +31,7 @@ public:
     void DrawSphere(const float * center, float radius, int numSections=16, const float * colour = 0, float thickness=1.f);
     void SetCameraPosition(const float * eye);
     void SetCameraLookAt(const float * eye, const float * target, const float * up);
-    void SetCameraLense(float angleFOV, float near=1.f, float far=1000.f);
+    void SetCameraLense(float angleFOV, float nearPlane=1.f, float farPlane=1000.f);
     void SetDimensions(float width, float height);
     void Flush();
 private:
@@ -121,7 +125,7 @@ inline void Renderer::SetDimensions(float inWidth, float inHeight)
     width = inWidth;
     height = inHeight;
     
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, (GLsizei)width, (GLsizei)height);
 }
 
 inline void Renderer::Clear()
@@ -356,7 +360,7 @@ inline void Renderer::SetCameraLookAt(const float * eye, const float * target, c
 
 
 
-inline void Renderer::SetCameraLense(float angleFOV, float near, float far)
+inline void Renderer::SetCameraLense(float angleFOV, float nearPlane, float farPlane)
 {
     const float ratio = (width > 0.f && height > 0.f) ? width / height : 1.f;
     const float size = tanf(AnglesToRadians(angleFOV) / 2.f);
@@ -364,20 +368,20 @@ inline void Renderer::SetCameraLense(float angleFOV, float near, float far)
     float right = size;
     float top = size / ratio;
     
-    projection[0] = near/right;
+    projection[0] = nearPlane/right;
     projection[1] = 0.f;
     projection[2] = 0.f;
     projection[3] = 0.f;
         
     projection[4] = 0.f;
-    projection[5] = near/top;
+    projection[5] = nearPlane/top;
     projection[6] = 0.f;
     projection[7] = 0.f;
     
     projection[8] = 0.f;
     projection[9] = 0.f;
-    projection[10] = -(far+near) / (far - near);
-    projection[14] = -2.f*far*near / (far - near);
+    projection[10] = -(farPlane+nearPlane) / (farPlane - nearPlane);
+    projection[14] = -2.f*farPlane*nearPlane / (farPlane - nearPlane);
         
     projection[12] = 0.f;
     projection[13] = 0.f;

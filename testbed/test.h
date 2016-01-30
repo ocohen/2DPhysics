@@ -10,7 +10,7 @@ class Renderer;
 class Test
 {
 public:
-    virtual bool Init(int, const char **){return true;}
+    virtual bool Init(int, char **){return true;}
     virtual bool Tick(Renderer&, float){ return true; }
     
     static TestMap * GetTestMap()

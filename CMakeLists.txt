@@ -5,7 +5,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${CMAKE_SOURCE_DIR})
 
+if(WIN32)
+add_definitions(-W2 -DWITH_WINDOWS)
+else()
 add_definitions(-W -Wall -ansi)
+ENDIF()
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     add_definitions(-Wno-c++11-extensions)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

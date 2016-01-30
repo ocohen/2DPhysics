@@ -1,15 +1,15 @@
-#ifndef OC_RECTANGLE_H
-#define OC_RECTANGLE_H
+#ifndef OC_RectangleShape_H
+#define OC_RectangleShape_H
 
 #include "baseshape.h"
 #include "transform.h"
 #include "convexpolygon.h"
 
-struct Rectangle : public ConvexPolygon
+struct RectangleShape : public ConvexPolygon
 {
 public:
-    Rectangle();
-    Rectangle(const Vector2& InExtents);
+    RectangleShape();
+    RectangleShape(const Vector2& InExtents);
     void SetExtents(const Vector2& InExtents);
     virtual void GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const override;
 

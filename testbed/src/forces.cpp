@@ -2,14 +2,14 @@
 #include "transform.h"
 #include "world.h"
 #include "actor.h"
-#include "circle.h"
-#include "rectangle.h"
+#include "CircleShape.h"
+#include "RectangleShape.h"
 #include "renderer.h"
 
 class ForcesTest : public Test
 {
 public:
-    bool Init(int Argc, const char** Argv)
+    bool Init(int Argc, char** Argv)
     {
         Stiffness = 100.f;
         Damping = 10.f;
@@ -23,18 +23,18 @@ public:
             Damping = atof(Argv[3]);
         }
 
-        Circle DefCircle(1.f);
-        Rectangle DefRectangle(Vector2(.2f,2.f));
+        CircleShape DefCircleShape(1.f);
+        RectangleShape DefRectangleShape(Vector2(.2f,2.f));
         {
             Actor* AnActor = AWorld.CreateActor();
-            AnActor->CreateShape<Rectangle>(DefRectangle);
+            AnActor->CreateShape<RectangleShape>(DefRectangleShape);
         }
 
         {
             Actor* AnActor = AWorld.CreateActor();
-            AnActor->CreateShape<Rectangle>(DefRectangle);
+            AnActor->CreateShape<RectangleShape>(DefRectangleShape);
             AnActor->SetWorldTransform(Transform(Vector2(3.f, 0.f), 0));
-            AnActor->CreateShape<Circle>(DefCircle, Transform(Vector2(0.f, 3.f)));
+            AnActor->CreateShape<CircleShape>(DefCircleShape, Transform(Vector2(0.f, 3.f)));
             AnActor->SetAngularVelocity(-PI*0.125);
             AnActor->SetKinematic(true);
         }
@@ -42,13 +42,13 @@ public:
         {
             Actor* AnActor = AWorld.CreateActor();
             AnActor->SetWorldTransform(Transform(Vector2(-4.f, -1.f)));
-            AnActor->CreateShape<Circle>(DefCircle);
+            AnActor->CreateShape<CircleShape>(DefCircleShape);
         }
 
         {
             Actor* AnActor = AWorld.CreateActor();
             AnActor->SetWorldTransform(Transform(Vector2(-7.f, -1.f)));
-            AnActor->CreateShape<Circle>(DefCircle);
+            AnActor->CreateShape<CircleShape>(DefCircleShape);
         }
 
         return true;

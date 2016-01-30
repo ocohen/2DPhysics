@@ -15,7 +15,7 @@ void ShowHelp()
     }
 }
 
-int main(int argc, const char ** argv)
+int main(int argc, char* argv[])
 {
 	if(argc <= 1)
 	{
@@ -79,7 +79,7 @@ int main(int argc, const char ** argv)
             }
 
             SDL_GL_SwapWindow(displayWindow);
-            SDL_Delay(delta);
+            SDL_Delay((unsigned int) delta);
         }
     }
     

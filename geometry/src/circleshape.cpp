@@ -1,22 +1,22 @@
-#include "circle.h"
+#include "circleshape.h"
 
-Circle::Circle() : BaseShape(Shape::Circle)
+CircleShape::CircleShape() : BaseShape(Shape::Circle)
 {
 }
 
-Circle::Circle(const float InRadius)
+CircleShape::CircleShape(const float InRadius)
 : BaseShape(Shape::Circle)
 , Radius(InRadius)
 {
 }
 
-void Circle::SetRadius(const float InRadius)
+void CircleShape::SetRadius(const float InRadius)
 {
     Radius = InRadius;
     std::vector<int> tests;
 }
 
-void Circle::GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const
+void CircleShape::GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Transform& WorldTM) const
 {
     const int NumVertices = 32;
     const Vector2& Position = WorldTM.Position;
@@ -31,4 +31,4 @@ void Circle::GenerateRenderVertices(std::vector<Vector2>& OutVertices, const Tra
     }
 }
 
-Shape::Type Circle::ShapeType = Shape::Circle;
+Shape::Type CircleShape::ShapeType = Shape::Circle;

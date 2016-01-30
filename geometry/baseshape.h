@@ -14,8 +14,8 @@ namespace Shape
     };
 }
 
-struct Circle;
-struct Rectangle;
+struct CircleShape;
+struct RectangleShape;
 struct ConvexPolygon;
 class Actor;
 struct ShapeOverlap;

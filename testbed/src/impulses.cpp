@@ -2,15 +2,15 @@
 #include "transform.h"
 #include "world.h"
 #include "actor.h"
-#include "circle.h"
-#include "rectangle.h"
+#include "CircleShape.h"
+#include "RectangleShape.h"
 #include "renderer.h"
 #include "solver.h"
 
 class ImpulsesTest : public Test
 {
 public:
-    bool Init(int Argc, const char** Argv)
+    bool Init(int Argc, char** Argv)
     {
         Stiffness = 100.f;
         Damping = 10.f;
@@ -24,30 +24,30 @@ public:
             Damping = atof(Argv[3]);
         }
 
-        Circle DefCircle(.3f);
+        CircleShape DefCircleShape(.3f);
 
         {
             float X = -4;
             float Y = 0;
             for(int i=0; i<43; ++i)
             {
-                X += 0.7;
+                X += 0.7f;
                 if(X > 4)
                 {
                     X = -4;
                     Y += 0.7f;
                 }
                 Actor* AnActor = AWorld.CreateActor();
-                AnActor->CreateShape<Circle>(DefCircle);
+                AnActor->CreateShape<CircleShape>(DefCircleShape);
                 AnActor->SetWorldTransform(Vector2(X,Y));
                 AnActor->SetRestitution(0.5f);
             }
         }
 
-        Rectangle DefArm(Vector2(3.f,.1f));
+        RectangleShape DefArm(Vector2(3.f,.1f));
         {
             Actor* AnActor = AWorld.CreateActor();
-            AnActor->CreateShape<Rectangle>(DefArm);
+            AnActor->CreateShape<RectangleShape>(DefArm);
             AnActor->CalculateMassInertiaAndCOM();
             AnActor->SetWorldTransform(Transform(Vector2(0.f,-2.f)));
             AnActor->SetKinematic(true);
@@ -55,10 +55,10 @@ public:
             AnActor->SetAngularVelocity(PI*0.25f);
         }
 
-        Rectangle DefFloor(Vector2(10.f,.1f));
+        RectangleShape DefFloor(Vector2(10.f,.1f));
         {
             Actor* AnActor = AWorld.CreateActor();
-            AnActor->CreateShape<Rectangle>(DefFloor);
+            AnActor->CreateShape<RectangleShape>(DefFloor);
             AnActor->CalculateMassInertiaAndCOM();
             AnActor->SetWorldTransform(Transform(Vector2(0.f,-5)));
             AnActor->SetKinematic(true);
@@ -67,7 +67,7 @@ public:
 
         {
             Actor* AnActor = AWorld.CreateActor();
-            AnActor->CreateShape<Rectangle>(DefFloor);
+            AnActor->CreateShape<RectangleShape>(DefFloor);
             AnActor->CalculateMassInertiaAndCOM();
             AnActor->SetWorldTransform(Transform(Vector2(0.f,5)));
             AnActor->SetKinematic(true);
@@ -76,7 +76,7 @@ public:
 
         {
             Actor* AnActor = AWorld.CreateActor();
-            AnActor->CreateShape<Rectangle>(DefFloor);
+            AnActor->CreateShape<RectangleShape>(DefFloor);
             AnActor->CalculateMassInertiaAndCOM();
             AnActor->SetWorldTransform(Transform(Vector2(5.f, 0.f), PI*0.5));
             AnActor->SetKinematic(true);
@@ -85,7 +85,7 @@ public:
 
         {
             Actor* AnActor = AWorld.CreateActor();
-            AnActor->CreateShape<Rectangle>(DefFloor);
+            AnActor->CreateShape<RectangleShape>(DefFloor);
             AnActor->CalculateMassInertiaAndCOM();
             AnActor->SetWorldTransform(Transform(Vector2(-5.f, 0.f), PI*0.5));
             AnActor->SetKinematic(true);
