@@ -1,1 +1,0 @@
-./math/tests/math_tests && ./geometry/tests/geometry_tests && ./simulation/tests/simulation_tests
