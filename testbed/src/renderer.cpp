@@ -1,7 +1,7 @@
 #include "renderer.h"
 #include "actor.h"
-#include "CircleShape.h"
-#include "RectangleShape.h"
+#include "circleshape.h"
+#include "rectangleshape.h"
 
 Renderer::Renderer(float Width, float Height)
 : TinyRenderer::Renderer(Width, Height, true)

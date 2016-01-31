@@ -1,4 +1,4 @@
-#include "RectangleShape.h"
+#include "rectangleshape.h"
 
 RectangleShape::RectangleShape() : ConvexPolygon(Shape::Rectangle)
 {

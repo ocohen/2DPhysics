@@ -1,8 +1,8 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.h"
 
-#include "CircleShape.h"
-#include "RectangleShape.h"
+#include "circleshape.h"
+#include "rectangleshape.h"
 #include "shapeoverlap.h"
 #include "convexpolygon.h"
 #include "contactmanifold.h"

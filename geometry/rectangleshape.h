@@ -1,5 +1,5 @@
-#ifndef OC_RectangleShape_H
-#define OC_RectangleShape_H
+#ifndef OC_RECTANGLESHAPE_H
+#define OC_RECTANGLESHAPE_H
 
 #include "baseshape.h"
 #include "transform.h"

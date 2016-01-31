@@ -1,6 +1,6 @@
 #include "baseshape.h"
-#include "CircleShape.h"
-#include "RectangleShape.h"
+#include "circleshape.h"
+#include "rectangleshape.h"
 #include "shapeoverlap.h"
 #include "contactmanifold.h"
 #include <cassert>

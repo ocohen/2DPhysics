@@ -2,8 +2,8 @@
 #include "transform.h"
 #include "world.h"
 #include "actor.h"
-#include "CircleShape.h"
-#include "RectangleShape.h"
+#include "circleshape.h"
+#include "rectangleshape.h"
 #include "renderer.h"
 #include "solver.h"
 

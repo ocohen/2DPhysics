@@ -3,8 +3,8 @@
 
 #include "world.h"
 #include "actor.h"
-#include "CircleShape.h"
-#include "RectangleShape.h"
+#include "circleshape.h"
+#include "rectangleshape.h"
 #include "solver.h"
 
 TEST_CASE( "Actor", "[actor]" )
