@@ -28,13 +28,13 @@ public:
 
         {
             float X = -4;
-            float Y = 0;
-            for(int i=0; i<43; ++i)
+            float Y = 2;
+            for(int i=0; i<50; ++i)
             {
                 X += 0.7f;
                 if(X > 4)
                 {
-                    X = -4;
+                    X = -3.3 + i % 4;
                     Y += 0.7f;
                 }
                 Actor* AnActor = AWorld.CreateActor();
@@ -49,11 +49,21 @@ public:
             Actor* AnActor = AWorld.CreateActor();
             AnActor->CreateShape<RectangleShape>(DefArm);
             AnActor->CalculateMassInertiaAndCOM();
-            AnActor->SetWorldTransform(Transform(Vector2(0.f,-2.f)));
+            AnActor->SetWorldTransform(Transform(Vector2(0.f,-2.f), 0.3f));
             AnActor->SetKinematic(true);
             AnActor->SetRestitution(1.f);
-            AnActor->SetAngularVelocity(PI*0.25f);
+            //AnActor->SetAngularVelocity(PI*0.25f);
         }
+        {
+            Actor* AnActor = AWorld.CreateActor();
+            AnActor->CreateShape<RectangleShape>(DefArm);
+            AnActor->CalculateMassInertiaAndCOM();
+            AnActor->SetWorldTransform(Transform(Vector2(-2.f,1.0f), -0.6f));
+            AnActor->SetKinematic(true);
+            AnActor->SetRestitution(1.f);
+            //AnActor->SetAngularVelocity(PI*0.25f);
+        }
+
 
         RectangleShape DefFloor(Vector2(10.f,.1f));
         {

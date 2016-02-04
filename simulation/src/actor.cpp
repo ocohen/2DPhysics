@@ -18,6 +18,7 @@ Actor::Actor(World* InWorld)
 void Actor::SetKinematic(bool IsKinematic)
 {
     bIsKinematic = IsKinematic;
+    InverseMass = 0.f;
     //TODO: update some structure in the scene
 }
 

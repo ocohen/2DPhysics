@@ -3,6 +3,16 @@
 
 void Solver::SolvePosition(Actor* A, Actor* B, const Contact& AContact)
 {
+    if(A->IsKinematic() == false)
+    {
+        A->SetWorldPosition(A->GetWorldPosition() - 0.5f*AContact.PenetrationDepth * AContact.Normal);
+    }
+
+    if(B->IsKinematic() == false)
+    {
+        B->SetWorldPosition(B->GetWorldPosition() + 0.5f*AContact.PenetrationDepth * AContact.Normal);
+    }
+    return;
     const Vector2& N = AContact.Normal;
     const float Depth = AContact.PenetrationDepth;
 
@@ -25,8 +35,48 @@ void Solver::SolvePosition(Actor* A, Actor* B, const Contact& AContact)
 
 }
 
+#include <iostream>
+
 void Solver::SolveVelocity(Actor* A, Actor* B, const Contact& AContact)
 {
+    //const Vector2& P = AContact.Position;
+    const Vector2& N = AContact.Normal;
+
+    const float InvMA = A->GetInverseMass();
+    const float InvMB = B->GetInverseMass();
+
+    //Lambda = -J Vin * (J M^-1 J^T)^-1
+    //J = [-N | N]
+    //Vin = [LinearV A, LinearV B]
+    //M^-1 = [I33 * InvMA | I33 * InvMB]
+    //TODO: add angular velocity
+
+    const float JVin = Vector2::Dot(B->GetLinearVelocity() - A->GetLinearVelocity(), N);
+    const float JMInvJT = InvMA + InvMB;
+
+    if(JMInvJT < SMALL_NUMBER)  //two kinematics
+    {
+        return;
+    }
+
+    const float Lambda = -JVin / JMInvJT;
+
+    if(Lambda <= 0.f)
+    {
+        return;
+    }
+
+    if(!A->IsKinematic())
+    {
+        A->AddImpulse(-N * Lambda);
+    }
+
+    if(!B->IsKinematic())
+    {
+        B->AddImpulse(N * Lambda);
+    }
+
+#if 0
     const Vector2& P = AContact.Position;
     const Vector2& N = AContact.Normal;
 
@@ -66,6 +116,7 @@ void Solver::SolveVelocity(Actor* A, Actor* B, const Contact& AContact)
             B->AddImpulseAt((-TargetVelocity-Ub) * BMass, P);
         } 
     }
+#endif
 }
 
 void Solver::SolveContact(Actor* A, Actor* B, const Contact& AContact)
@@ -76,12 +127,25 @@ void Solver::SolveContact(Actor* A, Actor* B, const Contact& AContact)
 
 void Solver::Solve(const std::vector<ContactManifold>& Manifolds)
 {
-    for(const ContactManifold& Manifold : Manifolds)
+    for(int i=0; i<4; i++)
     {
-        for(int ContactIdx = 0; ContactIdx < Manifold.NumContacts; ++ContactIdx)
+        for(const ContactManifold& Manifold : Manifolds)
         {
-            SolveContact(Manifold.A, Manifold.B, Manifold.ContactPoints[ContactIdx]);
+            for(int ContactIdx = 0; ContactIdx < Manifold.NumContacts; ++ContactIdx)
+            {
+                SolveVelocity(Manifold.A, Manifold.B, Manifold.ContactPoints[ContactIdx]);
+            }
+
         }
 
     }
+
+        for(const ContactManifold& Manifold : Manifolds)
+        {
+            for(int ContactIdx = 0; ContactIdx < Manifold.NumContacts; ++ContactIdx)
+            {
+                SolvePosition(Manifold.A, Manifold.B, Manifold.ContactPoints[ContactIdx]);
+            }
+
+        }
 }

@@ -1,5 +1,6 @@
 #include "world.h"
 #include "actor.h"
+#include "solver.h"
 #include "baseshape.h"
 #include <cassert>
 #include <set>
@@ -70,8 +71,34 @@ void World::GenerateContactManifolds()
     }
 }
 
-void World::Integrate(const float DeltaTime)
+void World::SolveContacts()
 {
+    Solver ASolver;
+    ASolver.Solve(ContactManifolds);
+}
+
+void World::IntegratePosition(const float DeltaTime)
+{
+    for(Actor* A : Actors)
+    {
+        const Transform NewTM(A->GetWorldPosition() + A->GetLinearVelocity() * DeltaTime, A->GetWorldRotation() + A->GetAngularVelocity() * DeltaTime);
+        A->SetWorldTransform(NewTM);
+    }
+
+}
+
+void World::IntegrateVelocity(const float DeltaTime)
+{
+
+    for(Actor* A : Actors)
+    {
+        const Vector2 NewLinearVelocity = A->GetLinearVelocity() + DeltaTime * A->GetLinearAcceleration(); 
+        const float NewAngularVelocity = A->GetAngularVelocity() + DeltaTime * A->GetAngularAcceleration();
+
+        A->SetLinearVelocity(NewLinearVelocity);
+        A->SetAngularVelocity(NewAngularVelocity);
+    }
+#if 0
     for(Actor* A : Actors)
     {
         //leapfrog integreation: http://en.wikipedia.org/wiki/Leapfrog_integration
@@ -100,4 +127,5 @@ void World::Integrate(const float DeltaTime)
         A->SetAngularAcceleration(0.f);
 
     }
+#endif
 }

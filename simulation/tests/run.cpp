@@ -225,6 +225,14 @@ TEST_CASE( "Simulation", "[simulation]" )
         M.ContactPoints[0].Normal = Vector2(1.f, 0.f);
         M.ContactPoints[0].PenetrationDepth = 1.f;
         Manifolds.push_back(M);
+        A->SetLinearVelocity(Vector2(1.f, 0.f));
+        {
+            ASolver.Solve(Manifolds);
+            CHECK(A->GetLinearVelocity().X == Approx(0.f));
+            CHECK(A->GetLinearVelocity().Y == Approx(0.f));
+        }
+        
+        return;
 
         {
             ASolver.Solve(Manifolds);

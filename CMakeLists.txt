@@ -8,7 +8,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 if(WIN32)
 add_definitions(-W2 -DWITH_WINDOWS)
 else()
-add_definitions(-W -Wall -ansi)
+add_definitions(-W -Wall -ansi -g)
 ENDIF()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
